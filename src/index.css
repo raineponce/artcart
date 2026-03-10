@@ -1,0 +1,16 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: #faf7f5;
+  color: #1a1918;
+  font-family: 'Poppins', sans-serif;
+  line-height: 1.6;
+}
+
+html, body, #root {
+  height: 100%;
+}
