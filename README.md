@@ -14,8 +14,6 @@ ArtCart will be an art supply inventory web app that can help users categorize a
 
 ### Tech Stack
 
-I am hoping to use the MERN stack for this web application. This includes:
-- MongoDB - Database storing
-- Express.js - Backend framework that works with Node.js
-- React - Frontend library
-- Node.js - JavaScript runtime environment
+- HTML
+- CSS
+- JavaScript

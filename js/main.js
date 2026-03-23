@@ -1,0 +1,1 @@
+// ArtCart - Main JavaScript
