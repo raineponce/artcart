@@ -1,1 +1,416 @@
 // ArtCart - Main JavaScript
+
+// Category icon mapping (Google Material Symbols names)
+const categoryIcons = {
+  drawing: "draw",
+  painting: "brush",
+  surfaces: "grid_on",
+  tools: "construction",
+  chemicals: "science",
+  accessories: "backpack",
+};
+
+// Fake supply data
+const supplies = [
+  {
+    name: "Colored Pencils",
+    category: "drawing",
+    quantity: 72,
+    brand: "Prismacolor",
+    origin: "Blick Art Materials",
+    dimensions: "8 x 8.25 in",
+    notes: "Premier soft core set. Great for blending and layering.",
+    tags: ["dry", "drawing", "blendable", "colored"],
+  },
+  {
+    name: "Graphite Pencils",
+    category: "drawing",
+    quantity: 12,
+    brand: "Royal Langnickel",
+    origin: "Amazon",
+    dimensions: "5.5 x 10 in",
+    notes: "Sketching set ranging from 6H to 8B.",
+    tags: ["dry", "drawing", "sketching", "graphite"],
+  },
+  {
+    name: "Vine Charcoal",
+    category: "drawing",
+    quantity: 36,
+    brand: "Jack Richeson",
+    origin: "Jerry's Artarama",
+    dimensions: "2 x 7 in",
+    notes: "Soft grade, good for gesture drawings and large studies.",
+    tags: ["dry", "drawing", "sketching", "charcoal"],
+  },
+  {
+    name: "Acrylic Paint",
+    category: "painting",
+    quantity: 4,
+    brand: "Liquitex",
+    origin: "Blick Art Materials",
+    dimensions: "N/A",
+    notes: "Heavy body basics set — titanium white, mars black, cad yellow, ultramarine blue.",
+    tags: ["wet", "painting", "acrylic", "colored"],
+  },
+  {
+    name: "Watercolor Set",
+    category: "painting",
+    quantity: 12,
+    brand: "Winsor & Newton",
+    origin: "Michaels",
+    dimensions: "5.5 x 10 in",
+    notes: "Cotman half-pan travel set with built-in mixing palette.",
+    tags: ["wet", "painting", "watercolor", "portable"],
+  },
+  {
+    name: "Face Paint",
+    category: "painting",
+    quantity: 12,
+    brand: "TAG Face Paint",
+    origin: "Amazon",
+    dimensions: "10 x 5 in",
+    notes: "Skin-safe, water-activated split cakes for events.",
+    tags: ["wet", "painting", "skin-safe", "portable"],
+  },
+  {
+    name: "Stretched Canvas",
+    category: "surfaces",
+    quantity: 6,
+    brand: "Arteza",
+    origin: "Arteza.com",
+    dimensions: "16 x 20 in",
+    notes: "Pre-primed cotton canvases, gallery-wrapped.",
+    tags: ["surfaces", "canvas", "primed", "painting"],
+  },
+  {
+    name: "Watercolor Paper Pad",
+    category: "surfaces",
+    quantity: 2,
+    brand: "Canson",
+    origin: "Blick Art Materials",
+    dimensions: "9 x 12 in",
+    notes: "140 lb cold press, 30 sheets per pad.",
+    tags: ["surfaces", "paper", "watercolor", "portable"],
+  },
+  {
+    name: "Palette Knives",
+    category: "tools",
+    quantity: 5,
+    brand: "Conda",
+    origin: "Amazon",
+    dimensions: "Assorted",
+    notes: "Stainless steel set for mixing and impasto technique.",
+    tags: ["tools", "mixing", "painting", "metal"],
+  },
+  {
+    name: "Craft Scissors",
+    category: "tools",
+    quantity: 3,
+    brand: "Fiskars",
+    origin: "Michaels",
+    dimensions: "8 in",
+    notes: "Precision-tip, great for detailed paper cutting.",
+    tags: ["tools", "cutting", "paper", "metal"],
+  },
+  {
+    name: "Gesso",
+    category: "chemicals",
+    quantity: 1,
+    brand: "Liquitex",
+    origin: "Blick Art Materials",
+    dimensions: "16 oz",
+    notes: "White acrylic gesso for priming surfaces before painting.",
+    tags: ["wet", "chemicals", "primer", "painting"],
+  },
+  {
+    name: "Brush Cleaner",
+    category: "chemicals",
+    quantity: 2,
+    brand: "General Pencil",
+    origin: "Jerry's Artarama",
+    dimensions: "4 oz",
+    notes: "The Masters brush cleaner and preserver.",
+    tags: ["chemicals", "cleaning", "painting", "maintenance"],
+  },
+  {
+    name: "Art Supply Bag",
+    category: "accessories",
+    quantity: 1,
+    brand: "Nicpro",
+    origin: "Amazon",
+    dimensions: "14 x 10 x 4 in",
+    notes: "Zippered organizer with compartments for pencils and brushes.",
+    tags: ["accessories", "storage", "portable", "organization"],
+  },
+  {
+    name: "Tabletop Easel",
+    category: "accessories",
+    quantity: 1,
+    brand: "US Art Supply",
+    origin: "Amazon",
+    dimensions: "18 in",
+    notes: "Portable beechwood easel, adjustable angle.",
+    tags: ["accessories", "easel", "portable", "wood"],
+  },
+];
+
+// Category display order
+const categoryOrder = [
+  "drawing",
+  "painting",
+  "surfaces",
+  "tools",
+  "chemicals",
+  "accessories",
+];
+
+// Group supplies by category
+function groupByCategory(items) {
+  const groups = {};
+  for (const item of items) {
+    if (!groups[item.category]) {
+      groups[item.category] = [];
+    }
+    groups[item.category].push(item);
+  }
+  return groups;
+}
+
+// Render all supply cards into the main container
+function renderSupplies() {
+  const main = document.getElementById("supplies-main");
+  if (!main) return;
+
+  const grouped = groupByCategory(supplies);
+
+  // Only render categories that have items, in specified order
+  for (const cat of categoryOrder) {
+    const items = grouped[cat];
+    if (!items || items.length === 0) continue;
+
+    const section = document.createElement("section");
+    section.className = "category-section";
+
+    const title = document.createElement("h2");
+    title.className = "category-title";
+    title.textContent = cat;
+    section.appendChild(title);
+
+    const grid = document.createElement("div");
+    grid.className = "card-grid";
+
+    for (const item of items) {
+      const card = document.createElement("div");
+      card.className = "supply-card";
+      card.innerHTML = `
+        <div class="card-icon">
+          <span class="material-symbols-rounded">${categoryIcons[item.category] || "category"}</span>
+        </div>
+        <h3 class="card-title">${item.name}</h3>
+        <p class="card-detail"><span>Quantity:</span> ${item.quantity}</p>
+        <p class="card-detail"><span>Brand:</span> ${item.brand}</p>
+        <p class="card-detail"><span>Origin:</span> ${item.origin}</p>
+      `;
+      card.addEventListener("click", () => openOverlay(item));
+      grid.appendChild(card);
+    }
+
+    section.appendChild(grid);
+    main.appendChild(section);
+  }
+}
+
+// Overlay logic
+function openOverlay(item) {
+  const overlay = document.getElementById("overlay");
+  const iconEl = document.getElementById("overlay-icon");
+  const titleEl = document.getElementById("overlay-title");
+  const detailsEl = document.getElementById("overlay-details");
+
+  iconEl.innerHTML = `<span class="material-symbols-rounded">${categoryIcons[item.category] || "category"}</span>`;
+  titleEl.textContent = item.name;
+
+  const fields = [
+    { label: "Category", value: item.category },
+    { label: "Quantity", value: item.quantity },
+    { label: "Brand", value: item.brand },
+    { label: "Origin", value: item.origin },
+    { label: "Dimensions", value: item.dimensions },
+    { label: "Notes", value: item.notes },
+  ];
+
+  detailsEl.innerHTML = fields
+    .map(
+      (f) => `
+      <div class="overlay-detail-row">
+        <span class="overlay-detail-label">${f.label}</span>
+        <span class="overlay-detail-value">${f.value}</span>
+      </div>
+    `
+    )
+    .join("");
+
+  overlay.classList.add("active");
+}
+
+function closeOverlay() {
+  document.getElementById("overlay").classList.remove("active");
+}
+
+// ===== FILTER LOGIC =====
+
+// Collect all unique tags from supplies
+function getAllTags() {
+  const tagSet = new Set();
+  for (const item of supplies) {
+    for (const tag of item.tags) {
+      tagSet.add(tag);
+    }
+  }
+  return Array.from(tagSet).sort();
+}
+
+// Track selected tags
+let selectedTags = new Set();
+
+// Build the filter overlay tag chips
+function renderFilterTags() {
+  const container = document.getElementById("filter-tags");
+  if (!container) return;
+
+  container.innerHTML = "";
+  const allTags = getAllTags();
+
+  for (const tag of allTags) {
+    const chip = document.createElement("button");
+    chip.className = "filter-chip" + (selectedTags.has(tag) ? " active" : "");
+    chip.textContent = tag;
+    chip.addEventListener("click", () => {
+      if (selectedTags.has(tag)) {
+        selectedTags.delete(tag);
+        chip.classList.remove("active");
+      } else {
+        selectedTags.add(tag);
+        chip.classList.add("active");
+      }
+    });
+    container.appendChild(chip);
+  }
+}
+
+function openFilterOverlay() {
+  renderFilterTags();
+  document.getElementById("filter-overlay").classList.add("active");
+}
+
+function closeFilterOverlay() {
+  document.getElementById("filter-overlay").classList.remove("active");
+}
+
+// Apply the selected tags and show results
+function applyFilter() {
+  closeFilterOverlay();
+  const main = document.getElementById("supplies-main");
+  if (!main) return;
+
+  // If no tags selected, restore default view
+  if (selectedTags.size === 0) {
+    main.innerHTML = "";
+    renderSupplies();
+    return;
+  }
+
+  // Filter items that match ALL selected tags
+  const filtered = supplies.filter((item) =>
+    [...selectedTags].every((tag) => item.tags.includes(tag))
+  );
+
+  main.innerHTML = "";
+
+  const section = document.createElement("section");
+  section.className = "category-section";
+
+  const title = document.createElement("h2");
+  title.className = "category-title";
+  title.textContent = "results";
+  section.appendChild(title);
+
+  if (filtered.length === 0) {
+    const empty = document.createElement("p");
+    empty.className = "filter-empty";
+    empty.textContent = "No supplies match the selected tags.";
+    section.appendChild(empty);
+  } else {
+    const grid = document.createElement("div");
+    grid.className = "card-grid";
+
+    for (const item of filtered) {
+      const card = document.createElement("div");
+      card.className = "supply-card";
+      card.innerHTML = `
+        <div class="card-icon">
+          <span class="material-symbols-rounded">${categoryIcons[item.category] || "category"}</span>
+        </div>
+        <h3 class="card-title">${item.name}</h3>
+        <p class="card-detail"><span>Quantity:</span> ${item.quantity}</p>
+        <p class="card-detail"><span>Brand:</span> ${item.brand}</p>
+        <p class="card-detail"><span>Origin:</span> ${item.origin}</p>
+      `;
+      card.addEventListener("click", () => openOverlay(item));
+      grid.appendChild(card);
+    }
+
+    section.appendChild(grid);
+  }
+
+  main.appendChild(section);
+}
+
+// Clear all selected tags and restore default view
+function clearFilter() {
+  selectedTags.clear();
+  closeFilterOverlay();
+  const main = document.getElementById("supplies-main");
+  if (!main) return;
+  main.innerHTML = "";
+  renderSupplies();
+}
+
+// Init
+document.addEventListener("DOMContentLoaded", () => {
+  renderSupplies();
+
+  // Card overlay
+  document
+    .getElementById("overlay-close")
+    ?.addEventListener("click", closeOverlay);
+
+  document.getElementById("overlay")?.addEventListener("click", (e) => {
+    if (e.target.id === "overlay") {
+      closeOverlay();
+    }
+  });
+
+  // Filter overlay
+  document
+    .getElementById("filter-btn")
+    ?.addEventListener("click", openFilterOverlay);
+
+  document
+    .getElementById("filter-overlay-close")
+    ?.addEventListener("click", closeFilterOverlay);
+
+  document.getElementById("filter-overlay")?.addEventListener("click", (e) => {
+    if (e.target.id === "filter-overlay") {
+      closeFilterOverlay();
+    }
+  });
+
+  document
+    .getElementById("filter-apply-btn")
+    ?.addEventListener("click", applyFilter);
+
+  document
+    .getElementById("filter-clear-btn")
+    ?.addEventListener("click", clearFilter);
+});

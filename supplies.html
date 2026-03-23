@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ArtCart - My Supplies</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Young+Serif&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+  </head>
+  <body>
+
+    <!-- NAV - Off-white section -->
+    <nav class="nav-top">
+      <a href="index.html" class="nav-logo">
+        <span class="material-symbols-rounded">palette</span>
+        ArtCart
+      </a>
+      <div class="nav-links">
+        <a href="supplies.html" class="active">supplies</a>
+        <a href="#">wishlist</a>
+        <a href="#">gallery</a>
+        <a href="#" class="nav-icon-link">
+          <span class="material-symbols-rounded">account_circle</span>
+        </a>
+      </div>
+    </nav>
+
+    <!-- NAV - Dark-brown section -->
+    <div class="nav-sub">
+      <h1 class="page-title">my supplies</h1>
+      <div class="nav-sub-buttons">
+        <button class="btn-sub" id="filter-btn">
+          <span>filter</span>
+          <span class="material-symbols-rounded">tune</span>
+        </button>
+        <button class="btn-sub" disabled>
+          <span>new</span>
+          <span class="material-symbols-rounded">add</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <main class="supplies-main" id="supplies-main">
+      <!-- Cards are rendered by JS -->
+    </main>
+
+    <!-- CARD OVERLAY -->
+    <div class="overlay" id="overlay">
+      <div class="overlay-content">
+        <button class="overlay-close" id="overlay-close">
+          <span class="material-symbols-rounded">close</span>
+        </button>
+        <div class="overlay-icon" id="overlay-icon"></div>
+        <h2 class="overlay-title" id="overlay-title"></h2>
+        <div class="overlay-details" id="overlay-details"></div>
+        <div class="overlay-actions">
+          <button class="btn-overlay" disabled>
+            <span class="material-symbols-rounded">edit</span>
+            Edit
+          </button>
+          <button class="btn-overlay btn-overlay-delete" disabled>
+            <span class="material-symbols-rounded">delete</span>
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- FILTER OVERLAY -->
+    <div class="overlay" id="filter-overlay">
+      <div class="overlay-content filter-overlay-content">
+        <button class="overlay-close" id="filter-overlay-close">
+          <span class="material-symbols-rounded">close</span>
+        </button>
+        <h2 class="overlay-title">filter by tags</h2>
+        <div class="filter-tags" id="filter-tags">
+          <!-- Tag chips rendered by JS -->
+        </div>
+        <div class="filter-overlay-actions">
+          <button class="btn-overlay" id="filter-apply-btn">
+            <span class="material-symbols-rounded">filter_alt</span>
+            Filter
+          </button>
+          <button class="btn-overlay btn-overlay-clear" id="filter-clear-btn">
+            <span class="material-symbols-rounded">clear_all</span>
+            Clear
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <div class="footer-brand">
+          <span class="material-symbols-rounded">palette</span>
+          <span>ArtCart</span>
+        </div>
+        <p class="footer-tagline">Track your art supplies, fuel your creativity.</p>
+        <div class="footer-links">
+          <a href="supplies.html">Supplies</a>
+          <a href="#">Wishlist</a>
+          <a href="#">Gallery</a>
+        </div>
+        <p class="footer-copy">&copy; 2026 ArtCart. All rights reserved.</p>
+      </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+  </body>
+</html>
