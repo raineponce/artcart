@@ -220,8 +220,12 @@ function renderSupplies() {
   }
 }
 
+// Track the currently viewed item for edit/delete
+let currentItem = null;
+
 // Overlay logic
 function openOverlay(item) {
+  currentItem = item;
   const overlay = document.getElementById("overlay");
   const iconEl = document.getElementById("overlay-icon");
   const titleEl = document.getElementById("overlay-title");
@@ -453,6 +457,123 @@ function handleNewFormSubmit(e) {
   }
 }
 
+// ===== EDIT ITEM LOGIC =====
+
+let editItemTags = new Set();
+
+function renderEditFormTags() {
+  const container = document.getElementById("edit-form-tags");
+  if (!container) return;
+
+  container.innerHTML = "";
+  const allTags = getAllTags();
+
+  for (const tag of allTags) {
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = "filter-chip" + (editItemTags.has(tag) ? " active" : "");
+    chip.textContent = tag;
+    chip.addEventListener("click", () => {
+      if (editItemTags.has(tag)) {
+        editItemTags.delete(tag);
+        chip.classList.remove("active");
+      } else {
+        editItemTags.add(tag);
+        chip.classList.add("active");
+      }
+    });
+    container.appendChild(chip);
+  }
+}
+
+function openEditOverlay() {
+  if (!currentItem) return;
+  closeOverlay();
+
+  // Populate form with current item data
+  document.getElementById("edit-name").value = currentItem.name;
+  document.getElementById("edit-category").value = currentItem.category;
+  document.getElementById("edit-quantity").value = currentItem.quantity || "";
+  document.getElementById("edit-brand").value = currentItem.brand || "";
+  document.getElementById("edit-origin").value = currentItem.origin || "";
+  document.getElementById("edit-dimensions").value = currentItem.dimensions || "";
+  document.getElementById("edit-notes").value = currentItem.notes || "";
+
+  editItemTags = new Set(currentItem.tags || []);
+  renderEditFormTags();
+
+  document.getElementById("edit-overlay").classList.add("active");
+}
+
+function closeEditOverlay() {
+  document.getElementById("edit-overlay").classList.remove("active");
+}
+
+function handleEditFormSubmit(e) {
+  e.preventDefault();
+  if (!currentItem) return;
+
+  const name = document.getElementById("edit-name").value.trim();
+  const category = document.getElementById("edit-category").value;
+
+  if (!name || !category) return;
+
+  // Update the item in place
+  currentItem.name = name;
+  currentItem.category = category;
+  currentItem.quantity = document.getElementById("edit-quantity").value
+    ? Number(document.getElementById("edit-quantity").value)
+    : "";
+  currentItem.brand = document.getElementById("edit-brand").value.trim() || "";
+  currentItem.origin = document.getElementById("edit-origin").value.trim() || "";
+  currentItem.dimensions = document.getElementById("edit-dimensions").value.trim() || "";
+  currentItem.notes = document.getElementById("edit-notes").value.trim() || "";
+  currentItem.tags = Array.from(editItemTags);
+
+  closeEditOverlay();
+  refreshMain();
+}
+
+// ===== DELETE ITEM LOGIC =====
+
+function openDeleteOverlay() {
+  if (!currentItem) return;
+  closeOverlay();
+
+  document.getElementById("delete-item-name").textContent = currentItem.name;
+  document.getElementById("delete-overlay").classList.add("active");
+}
+
+function closeDeleteOverlay() {
+  document.getElementById("delete-overlay").classList.remove("active");
+}
+
+function confirmDelete() {
+  if (!currentItem) return;
+
+  const index = supplies.indexOf(currentItem);
+  if (index !== -1) {
+    supplies.splice(index, 1);
+  }
+
+  currentItem = null;
+  closeDeleteOverlay();
+  refreshMain();
+}
+
+// Re-render main content respecting active filter
+function refreshMain() {
+  const main = document.getElementById("supplies-main");
+  if (!main) return;
+  main.innerHTML = "";
+
+  if (selectedTags.size > 0) {
+    applyFilter();
+  } else {
+    renderSupplies();
+  }
+}
+
 // Init
 document.addEventListener("DOMContentLoaded", () => {
   renderSupplies();
@@ -467,6 +588,52 @@ document.addEventListener("DOMContentLoaded", () => {
       closeOverlay();
     }
   });
+
+  // Edit overlay
+  document
+    .getElementById("overlay-edit-btn")
+    ?.addEventListener("click", openEditOverlay);
+
+  document
+    .getElementById("edit-overlay-close")
+    ?.addEventListener("click", closeEditOverlay);
+
+  document.getElementById("edit-overlay")?.addEventListener("click", (e) => {
+    if (e.target.id === "edit-overlay") {
+      closeEditOverlay();
+    }
+  });
+
+  document
+    .getElementById("edit-cancel-btn")
+    ?.addEventListener("click", closeEditOverlay);
+
+  document
+    .getElementById("edit-form")
+    ?.addEventListener("submit", handleEditFormSubmit);
+
+  // Delete overlay
+  document
+    .getElementById("overlay-delete-btn")
+    ?.addEventListener("click", openDeleteOverlay);
+
+  document
+    .getElementById("delete-overlay-close")
+    ?.addEventListener("click", closeDeleteOverlay);
+
+  document.getElementById("delete-overlay")?.addEventListener("click", (e) => {
+    if (e.target.id === "delete-overlay") {
+      closeDeleteOverlay();
+    }
+  });
+
+  document
+    .getElementById("delete-cancel-btn")
+    ?.addEventListener("click", closeDeleteOverlay);
+
+  document
+    .getElementById("delete-confirm-btn")
+    ?.addEventListener("click", confirmDelete);
 
   // Filter overlay
   document

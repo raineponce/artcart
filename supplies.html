@@ -58,13 +58,93 @@
         <h2 class="overlay-title" id="overlay-title"></h2>
         <div class="overlay-details" id="overlay-details"></div>
         <div class="overlay-actions">
-          <button class="btn-overlay" disabled>
+          <button class="btn-overlay" id="overlay-edit-btn">
             <span class="material-symbols-rounded">edit</span>
             Edit
           </button>
-          <button class="btn-overlay btn-overlay-delete" disabled>
+          <button class="btn-overlay btn-overlay-delete" id="overlay-delete-btn">
             <span class="material-symbols-rounded">delete</span>
             Delete
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- EDIT ITEM OVERLAY -->
+    <div class="overlay" id="edit-overlay">
+      <div class="overlay-content new-overlay-content">
+        <button class="overlay-close" id="edit-overlay-close">
+          <span class="material-symbols-rounded">close</span>
+        </button>
+        <h2 class="overlay-title">edit supply</h2>
+        <form class="new-form" id="edit-form">
+          <div class="form-group">
+            <label for="edit-name">Name <span class="required">*</span></label>
+            <input type="text" id="edit-name" name="name" required placeholder="e.g. Colored Pencils">
+          </div>
+          <div class="form-group">
+            <label for="edit-category">Category <span class="required">*</span></label>
+            <select id="edit-category" name="category" required>
+              <option value="" disabled>Select a category</option>
+              <option value="drawing">Drawing</option>
+              <option value="painting">Painting</option>
+              <option value="surfaces">Surfaces</option>
+              <option value="tools">Tools</option>
+              <option value="chemicals">Chemicals</option>
+              <option value="accessories">Accessories</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="edit-quantity">Quantity</label>
+            <input type="number" id="edit-quantity" name="quantity" min="0" placeholder="e.g. 12">
+          </div>
+          <div class="form-group">
+            <label for="edit-brand">Brand</label>
+            <input type="text" id="edit-brand" name="brand" placeholder="e.g. Prismacolor">
+          </div>
+          <div class="form-group">
+            <label for="edit-origin">Origin</label>
+            <input type="text" id="edit-origin" name="origin" placeholder="e.g. Blick Art Materials">
+          </div>
+          <div class="form-group">
+            <label for="edit-dimensions">Dimensions</label>
+            <input type="text" id="edit-dimensions" name="dimensions" placeholder="e.g. 8 x 10 in">
+          </div>
+          <div class="form-group">
+            <label for="edit-notes">Notes</label>
+            <textarea id="edit-notes" name="notes" rows="3" placeholder="Any additional notes..."></textarea>
+          </div>
+          <div class="form-group">
+            <label>Tags</label>
+            <div class="new-form-tags" id="edit-form-tags">
+              <!-- Tag chips rendered by JS -->
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="button" class="btn-overlay btn-overlay-clear" id="edit-cancel-btn">Cancel</button>
+            <button type="submit" class="btn-overlay">
+              <span class="material-symbols-rounded">save</span>
+              Save Changes
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- DELETE CONFIRMATION OVERLAY -->
+    <div class="overlay" id="delete-overlay">
+      <div class="overlay-content delete-overlay-content">
+        <button class="overlay-close" id="delete-overlay-close">
+          <span class="material-symbols-rounded">close</span>
+        </button>
+        <span class="material-symbols-rounded delete-icon">warning</span>
+        <h2 class="overlay-title">delete supply?</h2>
+        <p class="delete-message">Are you sure you want to delete <strong id="delete-item-name"></strong>? This action cannot be undone.</p>
+        <div class="form-actions">
+          <button class="btn-overlay btn-overlay-clear" id="delete-cancel-btn">Cancel</button>
+          <button class="btn-overlay btn-overlay-delete" id="delete-confirm-btn">
+            <span class="material-symbols-rounded">delete</span>
+            Yes, Delete
           </button>
         </div>
       </div>
