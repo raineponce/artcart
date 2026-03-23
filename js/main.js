@@ -376,6 +376,83 @@ function clearFilter() {
   renderSupplies();
 }
 
+// ===== NEW ITEM LOGIC =====
+
+let newItemTags = new Set();
+
+function renderNewFormTags() {
+  const container = document.getElementById("new-form-tags");
+  if (!container) return;
+
+  container.innerHTML = "";
+  const allTags = getAllTags();
+
+  for (const tag of allTags) {
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = "filter-chip" + (newItemTags.has(tag) ? " active" : "");
+    chip.textContent = tag;
+    chip.addEventListener("click", () => {
+      if (newItemTags.has(tag)) {
+        newItemTags.delete(tag);
+        chip.classList.remove("active");
+      } else {
+        newItemTags.add(tag);
+        chip.classList.add("active");
+      }
+    });
+    container.appendChild(chip);
+  }
+}
+
+function openNewOverlay() {
+  newItemTags.clear();
+  document.getElementById("new-form")?.reset();
+  renderNewFormTags();
+  document.getElementById("new-overlay").classList.add("active");
+}
+
+function closeNewOverlay() {
+  document.getElementById("new-overlay").classList.remove("active");
+}
+
+function handleNewFormSubmit(e) {
+  e.preventDefault();
+
+  const name = document.getElementById("new-name").value.trim();
+  const category = document.getElementById("new-category").value;
+
+  if (!name || !category) return;
+
+  const newItem = {
+    name,
+    category,
+    quantity: document.getElementById("new-quantity").value
+      ? Number(document.getElementById("new-quantity").value)
+      : "",
+    brand: document.getElementById("new-brand").value.trim() || "",
+    origin: document.getElementById("new-origin").value.trim() || "",
+    dimensions: document.getElementById("new-dimensions").value.trim() || "",
+    notes: document.getElementById("new-notes").value.trim() || "",
+    tags: Array.from(newItemTags),
+  };
+
+  supplies.push(newItem);
+  closeNewOverlay();
+
+  // Re-render the page
+  const main = document.getElementById("supplies-main");
+  if (!main) return;
+  main.innerHTML = "";
+
+  // If a filter was active, re-apply it; otherwise show default view
+  if (selectedTags.size > 0) {
+    applyFilter();
+  } else {
+    renderSupplies();
+  }
+}
+
 // Init
 document.addEventListener("DOMContentLoaded", () => {
   renderSupplies();
@@ -413,4 +490,27 @@ document.addEventListener("DOMContentLoaded", () => {
   document
     .getElementById("filter-clear-btn")
     ?.addEventListener("click", clearFilter);
+
+  // New item overlay
+  document
+    .getElementById("new-btn")
+    ?.addEventListener("click", openNewOverlay);
+
+  document
+    .getElementById("new-overlay-close")
+    ?.addEventListener("click", closeNewOverlay);
+
+  document.getElementById("new-overlay")?.addEventListener("click", (e) => {
+    if (e.target.id === "new-overlay") {
+      closeNewOverlay();
+    }
+  });
+
+  document
+    .getElementById("new-cancel-btn")
+    ?.addEventListener("click", closeNewOverlay);
+
+  document
+    .getElementById("new-form")
+    ?.addEventListener("submit", handleNewFormSubmit);
 });

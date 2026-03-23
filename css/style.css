@@ -333,6 +333,87 @@ h1, h2, h3 {
   background-color: #8B2500;
 }
 
+/* ===== NEW ITEM OVERLAY ===== */
+.new-overlay-content {
+  max-width: 460px;
+  max-height: 85vh;
+  overflow-y: auto;
+  text-align: left;
+}
+
+.new-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.form-group label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--dark-brown);
+}
+
+.form-group .required {
+  color: #8B2500;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  padding: 8px 12px;
+  border: 1.5px solid rgba(81,31,0,0.25);
+  border-radius: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  color: var(--dark-brown);
+  background: var(--off-white);
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  border-color: var(--dark-brown);
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  color: rgba(81,31,0,0.35);
+}
+
+.form-group textarea {
+  resize: vertical;
+}
+
+.new-form-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+.form-actions .btn-overlay {
+  cursor: pointer;
+}
+
+.form-actions .btn-overlay-clear {
+  cursor: pointer;
+}
+
 /* ===== FILTER OVERLAY ===== */
 .filter-overlay-content {
   max-width: 460px;
