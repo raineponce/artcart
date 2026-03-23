@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ArtCart - Shopping List</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Young+Serif&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+  </head>
+  <body>
+
+    <!-- NAV - Off-white section -->
+    <nav class="nav-top">
+      <a href="index.html" class="nav-logo">
+        <span class="material-symbols-rounded">palette</span>
+        ArtCart
+      </a>
+      <button class="hamburger" id="hamburger" aria-label="Toggle navigation">
+        <span class="material-symbols-rounded">menu</span>
+      </button>
+      <div class="nav-links" id="nav-links">
+        <a href="supplies.html">supplies</a>
+        <a href="wishlist.html" class="active">wishlist</a>
+        <a href="gallery.html">gallery</a>
+        <div class="user-menu">
+          <button class="nav-icon-link" id="user-menu-btn" aria-label="User menu">
+            <span class="material-symbols-rounded">account_circle</span>
+          </button>
+          <div class="user-dropdown" id="user-dropdown">
+            <a href="#" class="user-dropdown-item">
+              <span class="material-symbols-rounded">face</span>
+              Change Avatar
+            </a>
+            <a href="#" class="user-dropdown-item">
+              <span class="material-symbols-rounded">logout</span>
+              Sign Out
+            </a>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- NAV - Dark-brown section -->
+    <div class="nav-sub">
+      <h1 class="page-title">shopping list</h1>
+      <div class="nav-sub-buttons">
+        <button class="btn-sub" id="move-to-supplies-top-btn" disabled>
+          <span>add selected to my supplies</span>
+        </button>
+        <button class="btn-sub" id="wishlist-new-btn">
+          <span>new</span>
+          <span class="material-symbols-rounded">add</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <main class="wishlist-main" id="wishlist-main">
+      <!-- Wishlist items rendered by JS -->
+    </main>
+
+    <!-- BOTTOM "ADD TO MY SUPPLIES" -->
+    <div class="wishlist-bottom-action" id="wishlist-bottom-action">
+      <p class="wishlist-bottom-label">For selected items:</p>
+      <button class="btn-move-to-supplies" id="move-to-supplies-bottom-btn" disabled>
+        <span class="material-symbols-rounded">shopping_cart</span>
+        add to my supplies
+      </button>
+    </div>
+
+    <!-- EDIT WISHLIST ITEM OVERLAY -->
+    <div class="overlay" id="wishlist-edit-overlay">
+      <div class="overlay-content new-overlay-content">
+        <button class="overlay-close" id="wishlist-edit-overlay-close">
+          <span class="material-symbols-rounded">close</span>
+        </button>
+        <h2 class="overlay-title">edit item</h2>
+        <form class="new-form" id="wishlist-edit-form">
+          <div class="form-group">
+            <label for="wishlist-edit-name">Name <span class="required">*</span></label>
+            <input type="text" id="wishlist-edit-name" name="name" required placeholder="e.g. Colored Pencils">
+          </div>
+          <div class="form-group">
+            <label for="wishlist-edit-category">Category <span class="required">*</span></label>
+            <select id="wishlist-edit-category" name="category" required>
+              <option value="" disabled>Select a category</option>
+              <option value="drawing">Drawing</option>
+              <option value="painting">Painting</option>
+              <option value="surfaces">Surfaces</option>
+              <option value="tools">Tools</option>
+              <option value="chemicals">Chemicals</option>
+              <option value="accessories">Accessories</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="wishlist-edit-quantity">Quantity</label>
+            <input type="number" id="wishlist-edit-quantity" name="quantity" min="0" placeholder="e.g. 12">
+          </div>
+          <div class="form-group">
+            <label for="wishlist-edit-brand">Brand</label>
+            <input type="text" id="wishlist-edit-brand" name="brand" placeholder="e.g. Prismacolor">
+          </div>
+          <div class="form-group">
+            <label for="wishlist-edit-store">Store</label>
+            <input type="text" id="wishlist-edit-store" name="store" placeholder="e.g. Blick Art Materials">
+          </div>
+          <div class="form-actions">
+            <button type="button" class="btn-overlay btn-overlay-clear" id="wishlist-edit-cancel-btn">Cancel</button>
+            <button type="submit" class="btn-overlay">
+              <span class="material-symbols-rounded">save</span>
+              Save Changes
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- DELETE WISHLIST ITEM OVERLAY -->
+    <div class="overlay" id="wishlist-delete-overlay">
+      <div class="overlay-content delete-overlay-content">
+        <button class="overlay-close" id="wishlist-delete-overlay-close">
+          <span class="material-symbols-rounded">close</span>
+        </button>
+        <span class="material-symbols-rounded delete-icon">warning</span>
+        <h2 class="overlay-title">delete item?</h2>
+        <p class="delete-message">Are you sure you want to delete <strong id="wishlist-delete-item-name"></strong>? This action cannot be undone.</p>
+        <div class="form-actions">
+          <button class="btn-overlay btn-overlay-clear" id="wishlist-delete-cancel-btn">Cancel</button>
+          <button class="btn-overlay btn-overlay-delete" id="wishlist-delete-confirm-btn">
+            <span class="material-symbols-rounded">delete</span>
+            Yes, Delete
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- NEW WISHLIST ITEM OVERLAY -->
+    <div class="overlay" id="wishlist-new-overlay">
+      <div class="overlay-content new-overlay-content">
+        <button class="overlay-close" id="wishlist-new-overlay-close">
+          <span class="material-symbols-rounded">close</span>
+        </button>
+        <h2 class="overlay-title">new wishlist item</h2>
+        <form class="new-form" id="wishlist-new-form">
+          <div class="form-group">
+            <label for="wishlist-new-name">Name <span class="required">*</span></label>
+            <input type="text" id="wishlist-new-name" name="name" required placeholder="e.g. Colored Pencils">
+          </div>
+          <div class="form-group">
+            <label for="wishlist-new-category">Category <span class="required">*</span></label>
+            <select id="wishlist-new-category" name="category" required>
+              <option value="" disabled selected>Select a category</option>
+              <option value="drawing">Drawing</option>
+              <option value="painting">Painting</option>
+              <option value="surfaces">Surfaces</option>
+              <option value="tools">Tools</option>
+              <option value="chemicals">Chemicals</option>
+              <option value="accessories">Accessories</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="wishlist-new-quantity">Quantity</label>
+            <input type="number" id="wishlist-new-quantity" name="quantity" min="0" placeholder="e.g. 12">
+          </div>
+          <div class="form-group">
+            <label for="wishlist-new-brand">Brand</label>
+            <input type="text" id="wishlist-new-brand" name="brand" placeholder="e.g. Prismacolor">
+          </div>
+          <div class="form-group">
+            <label for="wishlist-new-store">Store</label>
+            <input type="text" id="wishlist-new-store" name="store" placeholder="e.g. Blick Art Materials">
+          </div>
+          <div class="form-actions">
+            <button type="button" class="btn-overlay btn-overlay-clear" id="wishlist-new-cancel-btn">Cancel</button>
+            <button type="submit" class="btn-overlay">
+              <span class="material-symbols-rounded">save</span>
+              Save
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- MOVE TO SUPPLIES CONFIRMATION OVERLAY -->
+    <div class="overlay" id="move-overlay">
+      <div class="overlay-content delete-overlay-content">
+        <button class="overlay-close" id="move-overlay-close">
+          <span class="material-symbols-rounded">close</span>
+        </button>
+        <span class="material-symbols-rounded move-icon">shopping_cart</span>
+        <h2 class="overlay-title">move to supplies?</h2>
+        <p class="delete-message">Are you sure you want to move the selected items to your supplies? They will be removed from your shopping list.</p>
+        <div class="form-actions">
+          <button class="btn-overlay btn-overlay-clear" id="move-cancel-btn">Cancel</button>
+          <button class="btn-overlay" id="move-confirm-btn">
+            <span class="material-symbols-rounded">check</span>
+            Yes, Move
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <div class="footer-brand">
+          <span class="material-symbols-rounded">palette</span>
+          <span>ArtCart</span>
+        </div>
+        <p class="footer-tagline">Track your art supplies, fuel your creativity.</p>
+        <div class="footer-links">
+          <a href="supplies.html">Supplies</a>
+          <a href="wishlist.html">Wishlist</a>
+          <a href="gallery.html">Gallery</a>
+        </div>
+        <p class="footer-copy">&copy; 2026 ArtCart. All rights reserved.</p>
+      </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+  </body>
+</html>

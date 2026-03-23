@@ -279,6 +279,23 @@ function closeOverlay() {
   document.getElementById("overlay").classList.remove("active");
 }
 
+// ===== ADD TO WISHLIST (from supplies overlay) =====
+
+function addCurrentItemToWishlist() {
+  if (!currentItem) return;
+
+  wishlist.push({
+    name: currentItem.name,
+    category: currentItem.category,
+    quantity: currentItem.quantity || "",
+    brand: currentItem.brand || "",
+    store: currentItem.origin || "",
+  });
+
+  saveWishlist();
+  closeOverlay();
+}
+
 // ===== FILTER LOGIC =====
 
 // Collect all unique tags from supplies
@@ -595,9 +612,285 @@ function refreshMain() {
   }
 }
 
+// ===== WISHLIST LOGIC =====
+
+const defaultWishlist = [
+  {
+    name: "Colored Pencils",
+    category: "drawing",
+    quantity: 72,
+    brand: "Prismacolor",
+    store: "Sam Flax",
+  },
+  {
+    name: "Tombow Erasers",
+    category: "drawing",
+    quantity: 8,
+    brand: "Tombow",
+    store: "Amazon",
+  },
+  {
+    name: "Gel Pens",
+    category: "drawing",
+    quantity: 2,
+    brand: "Gelly Roll",
+    store: "Sam Flax",
+  },
+];
+
+function loadWishlist() {
+  const stored = localStorage.getItem("wishlist");
+  if (stored) {
+    return JSON.parse(stored);
+  }
+  localStorage.setItem("wishlist", JSON.stringify(defaultWishlist));
+  return JSON.parse(JSON.stringify(defaultWishlist));
+}
+
+function saveWishlist() {
+  localStorage.setItem("wishlist", JSON.stringify(wishlist));
+}
+
+const wishlist = loadWishlist();
+let currentWishlistItem = null;
+const checkedItems = new Set();
+
+function updateMoveButtons() {
+  const topBtn = document.getElementById("move-to-supplies-top-btn");
+  const bottomBtn = document.getElementById("move-to-supplies-bottom-btn");
+  const disabled = checkedItems.size === 0;
+  if (topBtn) topBtn.disabled = disabled;
+  if (bottomBtn) bottomBtn.disabled = disabled;
+}
+
+function renderWishlist() {
+  const main = document.getElementById("wishlist-main");
+  if (!main) return;
+
+  main.innerHTML = "";
+
+  if (wishlist.length === 0) {
+    const empty = document.createElement("p");
+    empty.className = "wishlist-empty";
+    empty.textContent = 'Your shopping list is empty. Click "new" to add items!';
+    main.appendChild(empty);
+
+    // Hide bottom action when empty
+    const bottomAction = document.getElementById("wishlist-bottom-action");
+    if (bottomAction) bottomAction.style.display = "none";
+    return;
+  }
+
+  // Show bottom action
+  const bottomAction = document.getElementById("wishlist-bottom-action");
+  if (bottomAction) bottomAction.style.display = "";
+
+  // Cart icon
+  const cartIcon = document.createElement("div");
+  cartIcon.className = "wishlist-cart-icon";
+  cartIcon.innerHTML = '<span class="material-symbols-rounded">shopping_cart</span>';
+  main.appendChild(cartIcon);
+
+  // List container
+  const list = document.createElement("div");
+  list.className = "wishlist-list";
+
+  for (let i = 0; i < wishlist.length; i++) {
+    const item = wishlist[i];
+    const row = document.createElement("div");
+    row.className = "wishlist-item";
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.className = "wishlist-checkbox";
+    checkbox.checked = checkedItems.has(i);
+    checkbox.addEventListener("change", () => {
+      if (checkbox.checked) {
+        checkedItems.add(i);
+      } else {
+        checkedItems.delete(i);
+      }
+      updateMoveButtons();
+    });
+
+    const name = document.createElement("span");
+    name.className = "wishlist-item-name";
+    name.textContent = item.name;
+
+    const desc = document.createElement("span");
+    desc.className = "wishlist-item-desc";
+    desc.innerHTML =
+      `<span>Quantity:</span> ${item.quantity || "—"}<br>` +
+      `<span>Brand:</span> ${item.brand || "—"}<br>` +
+      `<span>Store:</span> ${item.store || "—"}`;
+
+    const actions = document.createElement("div");
+    actions.className = "wishlist-item-actions";
+
+    const editBtn = document.createElement("button");
+    editBtn.className = "btn-wishlist-action";
+    editBtn.textContent = "edit";
+    editBtn.addEventListener("click", () => openWishlistEditOverlay(i));
+
+    const deleteBtn = document.createElement("button");
+    deleteBtn.className = "btn-wishlist-action delete";
+    deleteBtn.textContent = "delete";
+    deleteBtn.addEventListener("click", () => openWishlistDeleteOverlay(i));
+
+    actions.appendChild(editBtn);
+    actions.appendChild(deleteBtn);
+
+    row.appendChild(checkbox);
+    row.appendChild(name);
+    row.appendChild(desc);
+    row.appendChild(actions);
+    list.appendChild(row);
+  }
+
+  main.appendChild(list);
+  updateMoveButtons();
+}
+
+// New wishlist item
+function openWishlistNewOverlay() {
+  document.getElementById("wishlist-new-form")?.reset();
+  document.getElementById("wishlist-new-overlay").classList.add("active");
+}
+
+function closeWishlistNewOverlay() {
+  document.getElementById("wishlist-new-overlay").classList.remove("active");
+}
+
+function handleWishlistNewSubmit(e) {
+  e.preventDefault();
+
+  const name = document.getElementById("wishlist-new-name").value.trim();
+  const category = document.getElementById("wishlist-new-category").value;
+
+  if (!name || !category) return;
+
+  wishlist.push({
+    name,
+    category,
+    quantity: document.getElementById("wishlist-new-quantity").value
+      ? Number(document.getElementById("wishlist-new-quantity").value)
+      : "",
+    brand: document.getElementById("wishlist-new-brand").value.trim() || "",
+    store: document.getElementById("wishlist-new-store").value.trim() || "",
+  });
+
+  saveWishlist();
+  closeWishlistNewOverlay();
+  checkedItems.clear();
+  renderWishlist();
+}
+
+// Edit wishlist item
+function openWishlistEditOverlay(index) {
+  currentWishlistItem = index;
+  const item = wishlist[index];
+
+  document.getElementById("wishlist-edit-name").value = item.name;
+  document.getElementById("wishlist-edit-category").value = item.category;
+  document.getElementById("wishlist-edit-quantity").value = item.quantity || "";
+  document.getElementById("wishlist-edit-brand").value = item.brand || "";
+  document.getElementById("wishlist-edit-store").value = item.store || "";
+
+  document.getElementById("wishlist-edit-overlay").classList.add("active");
+}
+
+function closeWishlistEditOverlay() {
+  document.getElementById("wishlist-edit-overlay").classList.remove("active");
+}
+
+function handleWishlistEditSubmit(e) {
+  e.preventDefault();
+  if (currentWishlistItem === null) return;
+
+  const name = document.getElementById("wishlist-edit-name").value.trim();
+  const category = document.getElementById("wishlist-edit-category").value;
+
+  if (!name || !category) return;
+
+  wishlist[currentWishlistItem] = {
+    name,
+    category,
+    quantity: document.getElementById("wishlist-edit-quantity").value
+      ? Number(document.getElementById("wishlist-edit-quantity").value)
+      : "",
+    brand: document.getElementById("wishlist-edit-brand").value.trim() || "",
+    store: document.getElementById("wishlist-edit-store").value.trim() || "",
+  };
+
+  saveWishlist();
+  closeWishlistEditOverlay();
+  renderWishlist();
+}
+
+// Delete wishlist item
+function openWishlistDeleteOverlay(index) {
+  currentWishlistItem = index;
+  document.getElementById("wishlist-delete-item-name").textContent =
+    wishlist[index].name;
+  document.getElementById("wishlist-delete-overlay").classList.add("active");
+}
+
+function closeWishlistDeleteOverlay() {
+  document.getElementById("wishlist-delete-overlay").classList.remove("active");
+}
+
+function confirmWishlistDelete() {
+  if (currentWishlistItem === null) return;
+
+  wishlist.splice(currentWishlistItem, 1);
+  saveWishlist();
+  currentWishlistItem = null;
+  closeWishlistDeleteOverlay();
+  checkedItems.clear();
+  renderWishlist();
+}
+
+// Move checked items to supplies
+function openMoveOverlay() {
+  if (checkedItems.size === 0) return;
+  document.getElementById("move-overlay").classList.add("active");
+}
+
+function closeMoveOverlay() {
+  document.getElementById("move-overlay").classList.remove("active");
+}
+
+function confirmMoveToSupplies() {
+  // Get checked indices in descending order so splicing doesn't shift indices
+  const indices = Array.from(checkedItems).sort((a, b) => b - a);
+
+  for (const i of indices) {
+    const item = wishlist[i];
+    // Convert wishlist item to supply item
+    supplies.push({
+      name: item.name,
+      category: item.category,
+      quantity: item.quantity || "",
+      brand: item.brand || "",
+      origin: item.store || "",
+      dimensions: "",
+      notes: "",
+      tags: [],
+    });
+    wishlist.splice(i, 1);
+  }
+
+  saveSupplies();
+  saveWishlist();
+  checkedItems.clear();
+  closeMoveOverlay();
+  renderWishlist();
+}
+
 // Init
 document.addEventListener("DOMContentLoaded", () => {
   renderSupplies();
+  renderWishlist();
 
   // Hamburger menu toggle
   const hamburger = document.getElementById("hamburger");
@@ -631,6 +924,11 @@ document.addEventListener("DOMContentLoaded", () => {
       closeOverlay();
     }
   });
+
+  // Add to wishlist from overlay
+  document
+    .getElementById("overlay-wishlist-btn")
+    ?.addEventListener("click", addCurrentItemToWishlist);
 
   // Edit overlay
   document
@@ -723,4 +1021,86 @@ document.addEventListener("DOMContentLoaded", () => {
   document
     .getElementById("new-form")
     ?.addEventListener("submit", handleNewFormSubmit);
+
+  // ===== WISHLIST EVENT LISTENERS =====
+
+  // New wishlist item
+  document
+    .getElementById("wishlist-new-btn")
+    ?.addEventListener("click", openWishlistNewOverlay);
+
+  document
+    .getElementById("wishlist-new-overlay-close")
+    ?.addEventListener("click", closeWishlistNewOverlay);
+
+  document.getElementById("wishlist-new-overlay")?.addEventListener("click", (e) => {
+    if (e.target.id === "wishlist-new-overlay") closeWishlistNewOverlay();
+  });
+
+  document
+    .getElementById("wishlist-new-cancel-btn")
+    ?.addEventListener("click", closeWishlistNewOverlay);
+
+  document
+    .getElementById("wishlist-new-form")
+    ?.addEventListener("submit", handleWishlistNewSubmit);
+
+  // Edit wishlist item
+  document
+    .getElementById("wishlist-edit-overlay-close")
+    ?.addEventListener("click", closeWishlistEditOverlay);
+
+  document.getElementById("wishlist-edit-overlay")?.addEventListener("click", (e) => {
+    if (e.target.id === "wishlist-edit-overlay") closeWishlistEditOverlay();
+  });
+
+  document
+    .getElementById("wishlist-edit-cancel-btn")
+    ?.addEventListener("click", closeWishlistEditOverlay);
+
+  document
+    .getElementById("wishlist-edit-form")
+    ?.addEventListener("submit", handleWishlistEditSubmit);
+
+  // Delete wishlist item
+  document
+    .getElementById("wishlist-delete-overlay-close")
+    ?.addEventListener("click", closeWishlistDeleteOverlay);
+
+  document.getElementById("wishlist-delete-overlay")?.addEventListener("click", (e) => {
+    if (e.target.id === "wishlist-delete-overlay") closeWishlistDeleteOverlay();
+  });
+
+  document
+    .getElementById("wishlist-delete-cancel-btn")
+    ?.addEventListener("click", closeWishlistDeleteOverlay);
+
+  document
+    .getElementById("wishlist-delete-confirm-btn")
+    ?.addEventListener("click", confirmWishlistDelete);
+
+  // Move to supplies
+  document
+    .getElementById("move-to-supplies-top-btn")
+    ?.addEventListener("click", openMoveOverlay);
+
+  document
+    .getElementById("move-to-supplies-bottom-btn")
+    ?.addEventListener("click", openMoveOverlay);
+
+  document
+    .getElementById("move-overlay-close")
+    ?.addEventListener("click", closeMoveOverlay);
+
+  document.getElementById("move-overlay")?.addEventListener("click", (e) => {
+    if (e.target.id === "move-overlay") closeMoveOverlay();
+  });
+
+  document
+    .getElementById("move-cancel-btn")
+    ?.addEventListener("click", closeMoveOverlay);
+
+  document
+    .getElementById("move-confirm-btn")
+    ?.addEventListener("click", confirmMoveToSupplies);
 });
