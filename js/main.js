@@ -1,5 +1,14 @@
 // ArtCart - Main JavaScript
 
+// ===== AUTH GUARD =====
+// Pages that require login
+const protectedPages = ["supplies.html", "wishlist.html", "gallery.html"];
+const currentPage = window.location.pathname.split("/").pop() || "index.html";
+
+if (protectedPages.includes(currentPage) && !localStorage.getItem("loggedIn")) {
+  window.location.href = "login.html";
+}
+
 // Category icon mapping (Google Material Symbols names)
 const categoryIcons = {
   drawing: "draw",
@@ -1362,4 +1371,55 @@ document.addEventListener("DOMContentLoaded", () => {
   document
     .getElementById("gallery-delete-confirm-btn")
     ?.addEventListener("click", confirmGalleryDelete);
+
+  // ===== AUTH EVENT LISTENERS =====
+
+  // Sign out
+  document.getElementById("sign-out-btn")?.addEventListener("click", (e) => {
+    e.preventDefault();
+    localStorage.removeItem("loggedIn");
+    window.location.href = "index.html";
+  });
+
+  // Login form
+  document.getElementById("login-form")?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const username = document.getElementById("login-username").value.trim();
+    const password = document.getElementById("login-password").value;
+
+    if (!username || !password) return;
+
+    // Placeholder — Supabase will replace this
+    localStorage.setItem("loggedIn", "true");
+    window.location.href = "supplies.html";
+  });
+
+  // Signup form
+  document.getElementById("signup-form")?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const username = document.getElementById("signup-username").value.trim();
+    const password = document.getElementById("signup-password").value;
+    const confirm = document.getElementById("signup-confirm").value;
+
+    if (!username || !password || !confirm) return;
+
+    // Check passwords match
+    const existingError = document.querySelector(".auth-error");
+    if (existingError) existingError.remove();
+
+    if (password !== confirm) {
+      const error = document.createElement("p");
+      error.className = "auth-error";
+      error.textContent = "Passwords do not match.";
+      document.getElementById("signup-form").insertBefore(
+        error,
+        document.getElementById("signup-form").querySelector(".btn-auth")
+      );
+      return;
+    }
+
+    // Placeholder — Supabase will replace this
+    localStorage.setItem("loggedIn", "true");
+    window.location.href = "supplies.html";
+  });
 });

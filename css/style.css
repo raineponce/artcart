@@ -953,6 +953,212 @@ h3 {
   padding: 48px 0;
 }
 
+/* ===== LANDING PAGE ===== */
+.landing-main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+}
+
+.landing-container {
+  background: var(--off-white);
+  border-radius: 12px;
+  padding: 48px 40px;
+  max-width: 640px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 1);
+}
+
+.landing-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.landing-logo .material-symbols-rounded {
+  font-size: 2.2rem;
+  color: var(--dark-brown);
+}
+
+.landing-logo h1 {
+  font-family: 'Young Serif', serif;
+  font-size: 2.2rem;
+  color: var(--dark-brown);
+}
+
+.landing-tagline {
+  font-size: 0.85rem;
+  color: var(--dark-brown);
+  opacity: 0.8;
+  line-height: 1.6;
+  margin-bottom: 32px;
+}
+
+.landing-features {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.feature-card {
+  padding: 20px 14px;
+  border: 1.5px solid rgba(81, 31, 0, 0.15);
+  border-radius: 10px;
+  text-align: center;
+}
+
+.feature-icon {
+  width: 44px;
+  height: 44px;
+  background-color: var(--dark-brown);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 10px;
+}
+
+.feature-icon .material-symbols-rounded {
+  color: var(--off-white);
+  font-size: 1.3rem;
+}
+
+.feature-card h3 {
+  font-family: 'Young Serif', serif;
+  font-size: 0.95rem;
+  color: var(--dark-brown);
+  margin-bottom: 6px;
+}
+
+.feature-card p {
+  font-size: 0.7rem;
+  color: var(--dark-brown);
+  opacity: 0.75;
+  line-height: 1.5;
+}
+
+.landing-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+/* ===== AUTH PAGES (Login / Signup) ===== */
+.auth-main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+}
+
+.auth-container {
+  background: var(--off-white);
+  border-radius: 12px;
+  padding: 40px 36px;
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 1);
+}
+
+.auth-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-decoration: none;
+  margin-bottom: 24px;
+}
+
+.auth-logo .material-symbols-rounded {
+  font-size: 1.8rem;
+  color: var(--dark-brown);
+}
+
+.auth-logo h1 {
+  font-family: 'Young Serif', serif;
+  font-size: 1.8rem;
+  color: var(--dark-brown);
+}
+
+.auth-title {
+  font-family: 'Young Serif', serif;
+  font-size: 1.4rem;
+  color: var(--dark-brown);
+  margin-bottom: 24px;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  text-align: left;
+}
+
+.btn-auth {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 28px;
+  background-color: var(--dark-brown);
+  color: var(--off-white);
+  border: 1.5px solid var(--dark-brown);
+  border-radius: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+  cursor: pointer;
+  text-decoration: none;
+  transition: opacity 0.15s;
+}
+
+.btn-auth:hover {
+  opacity: 0.85;
+}
+
+.btn-auth-outline {
+  background-color: transparent;
+  color: var(--dark-brown);
+}
+
+.btn-auth-outline:hover {
+  background-color: rgba(81, 31, 0, 0.08);
+  opacity: 1;
+}
+
+.auth-form .btn-auth {
+  margin-top: 6px;
+  width: 100%;
+}
+
+.auth-switch {
+  margin-top: 20px;
+  font-size: 0.8rem;
+  color: var(--dark-brown);
+  opacity: 0.8;
+}
+
+.auth-switch a {
+  color: var(--dark-brown);
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.auth-error {
+  background-color: rgba(139, 37, 0, 0.1);
+  color: #8B2500;
+  font-size: 0.75rem;
+  padding: 8px 12px;
+  border-radius: 6px;
+  text-align: center;
+}
+
 /* ===== RESPONSIVE ===== */
 
 /* Tablet — 2 columns */
@@ -1057,5 +1263,22 @@ h3 {
 
   .wishlist-list {
     padding: 8px 14px;
+  }
+
+  .landing-container {
+    padding: 32px 20px;
+  }
+
+  .landing-features {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .landing-actions {
+    flex-direction: column;
+  }
+
+  .auth-container {
+    padding: 32px 20px;
   }
 }
