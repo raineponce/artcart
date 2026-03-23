@@ -18,13 +18,28 @@
         <span class="material-symbols-rounded">palette</span>
         ArtCart
       </a>
-      <div class="nav-links">
+      <button class="hamburger" id="hamburger" aria-label="Toggle navigation">
+        <span class="material-symbols-rounded">menu</span>
+      </button>
+      <div class="nav-links" id="nav-links">
         <a href="supplies.html" class="active">supplies</a>
-        <a href="#">wishlist</a>
-        <a href="#">gallery</a>
-        <a href="#" class="nav-icon-link">
-          <span class="material-symbols-rounded">account_circle</span>
-        </a>
+        <a href="wishlist.html">wishlist</a>
+        <a href="gallery.html">gallery</a>
+        <div class="user-menu">
+          <button class="nav-icon-link" id="user-menu-btn" aria-label="User menu">
+            <span class="material-symbols-rounded">account_circle</span>
+          </button>
+          <div class="user-dropdown" id="user-dropdown">
+            <a href="#" class="user-dropdown-item">
+              <span class="material-symbols-rounded">face</span>
+              Change Avatar
+            </a>
+            <a href="#" class="user-dropdown-item">
+              <span class="material-symbols-rounded">logout</span>
+              Sign Out
+            </a>
+          </div>
+        </div>
       </div>
     </nav>
 
@@ -244,8 +259,8 @@
         <p class="footer-tagline">Track your art supplies, fuel your creativity.</p>
         <div class="footer-links">
           <a href="supplies.html">Supplies</a>
-          <a href="#">Wishlist</a>
-          <a href="#">Gallery</a>
+          <a href="wishlist.html">Wishlist</a>
+          <a href="gallery.html">Gallery</a>
         </div>
         <p class="footer-copy">&copy; 2026 ArtCart. All rights reserved.</p>
       </div>

@@ -10,8 +10,8 @@ const categoryIcons = {
   accessories: "backpack",
 };
 
-// Fake supply data
-const supplies = [
+// Default supply data (used to seed localStorage on first visit)
+const defaultSupplies = [
   {
     name: "Colored Pencils",
     category: "drawing",
@@ -153,6 +153,24 @@ const supplies = [
     tags: ["accessories", "easel", "portable", "wood"],
   },
 ];
+
+// Load supplies from localStorage, or seed with defaults on first visit
+function loadSupplies() {
+  const stored = localStorage.getItem("supplies");
+  if (stored) {
+    return JSON.parse(stored);
+  }
+  // First visit — seed localStorage with default data
+  localStorage.setItem("supplies", JSON.stringify(defaultSupplies));
+  return JSON.parse(JSON.stringify(defaultSupplies));
+}
+
+// Save the current supplies array to localStorage
+function saveSupplies() {
+  localStorage.setItem("supplies", JSON.stringify(supplies));
+}
+
+const supplies = loadSupplies();
 
 // Category display order
 const categoryOrder = [
@@ -442,6 +460,7 @@ function handleNewFormSubmit(e) {
   };
 
   supplies.push(newItem);
+  saveSupplies();
   closeNewOverlay();
 
   // Re-render the page
@@ -530,6 +549,7 @@ function handleEditFormSubmit(e) {
   currentItem.notes = document.getElementById("edit-notes").value.trim() || "";
   currentItem.tags = Array.from(editItemTags);
 
+  saveSupplies();
   closeEditOverlay();
   refreshMain();
 }
@@ -556,6 +576,7 @@ function confirmDelete() {
     supplies.splice(index, 1);
   }
 
+  saveSupplies();
   currentItem = null;
   closeDeleteOverlay();
   refreshMain();
@@ -577,6 +598,28 @@ function refreshMain() {
 // Init
 document.addEventListener("DOMContentLoaded", () => {
   renderSupplies();
+
+  // Hamburger menu toggle
+  const hamburger = document.getElementById("hamburger");
+  const navLinks = document.getElementById("nav-links");
+  if (hamburger && navLinks) {
+    hamburger.addEventListener("click", () => {
+      navLinks.classList.toggle("open");
+    });
+  }
+
+  // User dropdown toggle
+  const userMenuBtn = document.getElementById("user-menu-btn");
+  const userDropdown = document.getElementById("user-dropdown");
+  if (userMenuBtn && userDropdown) {
+    userMenuBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      userDropdown.classList.toggle("open");
+    });
+    document.addEventListener("click", () => {
+      userDropdown.classList.remove("open");
+    });
+  }
 
   // Card overlay
   document
