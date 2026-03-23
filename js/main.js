@@ -5,8 +5,19 @@
 const protectedPages = ["supplies.html", "wishlist.html", "gallery.html"];
 const currentPage = window.location.pathname.split("/").pop() || "index.html";
 
-if (protectedPages.includes(currentPage) && !localStorage.getItem("loggedIn")) {
-  window.location.href = "login.html";
+(async () => {
+  if (protectedPages.includes(currentPage)) {
+    const { data: { session } } = await supaClient.auth.getSession();
+    if (!session) {
+      window.location.href = "login.html";
+    }
+  }
+})();
+
+// Helper: get current user ID
+async function getUserId() {
+  const { data: { session } } = await supaClient.auth.getSession();
+  return session?.user?.id;
 }
 
 // Category icon mapping (Google Material Symbols names)
@@ -19,7 +30,7 @@ const categoryIcons = {
   accessories: "backpack",
 };
 
-// Default supply data (used to seed localStorage on first visit)
+// Default supply data (used to seed a fake user's data)
 const defaultSupplies = [
   {
     name: "Colored Pencils",
@@ -163,23 +174,57 @@ const defaultSupplies = [
   },
 ];
 
-// Load supplies from localStorage, or seed with defaults on first visit
-function loadSupplies() {
-  const stored = localStorage.getItem("supplies");
-  if (stored) {
-    return JSON.parse(stored);
+// ===== DATA LOADING (Supabase) =====
+
+async function loadSupplies() {
+  const userId = await getUserId();
+  if (!userId) return [];
+  const { data, error } = await supaClient
+    .from("supplies")
+    .select("*")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: true });
+  if (error) {
+    console.error("Error loading supplies:", error);
+    return [];
   }
-  // First visit — seed localStorage with default data
-  localStorage.setItem("supplies", JSON.stringify(defaultSupplies));
-  return JSON.parse(JSON.stringify(defaultSupplies));
+  return data || [];
 }
 
-// Save the current supplies array to localStorage
-function saveSupplies() {
-  localStorage.setItem("supplies", JSON.stringify(supplies));
+async function loadWishlist() {
+  const userId = await getUserId();
+  if (!userId) return [];
+  const { data, error } = await supaClient
+    .from("wishlist")
+    .select("*")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: true });
+  if (error) {
+    console.error("Error loading wishlist:", error);
+    return [];
+  }
+  return data || [];
 }
 
-const supplies = loadSupplies();
+async function loadGallery() {
+  const userId = await getUserId();
+  if (!userId) return [];
+  const { data, error } = await supaClient
+    .from("gallery")
+    .select("*")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: true });
+  if (error) {
+    console.error("Error loading gallery:", error);
+    return [];
+  }
+  return data || [];
+}
+
+// In-memory arrays (loaded async on page load)
+let supplies = [];
+let wishlist = [];
+let gallery = [];
 
 // Category display order
 const categoryOrder = [
@@ -290,18 +335,26 @@ function closeOverlay() {
 
 // ===== ADD TO WISHLIST (from supplies overlay) =====
 
-function addCurrentItemToWishlist() {
+async function addCurrentItemToWishlist() {
   if (!currentItem) return;
 
-  wishlist.push({
+  const userId = await getUserId();
+  if (!userId) return;
+
+  const { error } = await supaClient.from("wishlist").insert({
+    user_id: userId,
     name: currentItem.name,
     category: currentItem.category,
-    quantity: currentItem.quantity || "",
+    quantity: currentItem.quantity || null,
     brand: currentItem.brand || "",
     store: currentItem.origin || "",
   });
 
-  saveWishlist();
+  if (error) {
+    console.error("Error adding to wishlist:", error);
+    return;
+  }
+
   closeOverlay();
 }
 
@@ -311,8 +364,10 @@ function addCurrentItemToWishlist() {
 function getAllTags() {
   const tagSet = new Set();
   for (const item of supplies) {
-    for (const tag of item.tags) {
-      tagSet.add(tag);
+    if (item.tags) {
+      for (const tag of item.tags) {
+        tagSet.add(tag);
+      }
     }
   }
   return Array.from(tagSet).sort();
@@ -370,7 +425,7 @@ function applyFilter() {
 
   // Filter items that match ALL selected tags
   const filtered = supplies.filter((item) =>
-    [...selectedTags].every((tag) => item.tags.includes(tag))
+    item.tags && [...selectedTags].every((tag) => item.tags.includes(tag))
   );
 
   main.innerHTML = "";
@@ -464,7 +519,7 @@ function closeNewOverlay() {
   document.getElementById("new-overlay").classList.remove("active");
 }
 
-function handleNewFormSubmit(e) {
+async function handleNewFormSubmit(e) {
   e.preventDefault();
 
   const name = document.getElementById("new-name").value.trim();
@@ -472,12 +527,16 @@ function handleNewFormSubmit(e) {
 
   if (!name || !category) return;
 
+  const userId = await getUserId();
+  if (!userId) return;
+
   const newItem = {
+    user_id: userId,
     name,
     category,
     quantity: document.getElementById("new-quantity").value
       ? Number(document.getElementById("new-quantity").value)
-      : "",
+      : null,
     brand: document.getElementById("new-brand").value.trim() || "",
     origin: document.getElementById("new-origin").value.trim() || "",
     dimensions: document.getElementById("new-dimensions").value.trim() || "",
@@ -485,8 +544,18 @@ function handleNewFormSubmit(e) {
     tags: Array.from(newItemTags),
   };
 
-  supplies.push(newItem);
-  saveSupplies();
+  const { data, error } = await supaClient
+    .from("supplies")
+    .insert(newItem)
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Error adding supply:", error);
+    return;
+  }
+
+  supplies.push(data);
   closeNewOverlay();
 
   // Re-render the page
@@ -554,7 +623,7 @@ function closeEditOverlay() {
   document.getElementById("edit-overlay").classList.remove("active");
 }
 
-function handleEditFormSubmit(e) {
+async function handleEditFormSubmit(e) {
   e.preventDefault();
   if (!currentItem) return;
 
@@ -563,19 +632,36 @@ function handleEditFormSubmit(e) {
 
   if (!name || !category) return;
 
-  // Update the item in place
-  currentItem.name = name;
-  currentItem.category = category;
-  currentItem.quantity = document.getElementById("edit-quantity").value
-    ? Number(document.getElementById("edit-quantity").value)
-    : "";
-  currentItem.brand = document.getElementById("edit-brand").value.trim() || "";
-  currentItem.origin = document.getElementById("edit-origin").value.trim() || "";
-  currentItem.dimensions = document.getElementById("edit-dimensions").value.trim() || "";
-  currentItem.notes = document.getElementById("edit-notes").value.trim() || "";
-  currentItem.tags = Array.from(editItemTags);
+  const updates = {
+    name,
+    category,
+    quantity: document.getElementById("edit-quantity").value
+      ? Number(document.getElementById("edit-quantity").value)
+      : null,
+    brand: document.getElementById("edit-brand").value.trim() || "",
+    origin: document.getElementById("edit-origin").value.trim() || "",
+    dimensions: document.getElementById("edit-dimensions").value.trim() || "",
+    notes: document.getElementById("edit-notes").value.trim() || "",
+    tags: Array.from(editItemTags),
+  };
 
-  saveSupplies();
+  const { data, error } = await supaClient
+    .from("supplies")
+    .update(updates)
+    .eq("id", currentItem.id)
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Error updating supply:", error);
+    return;
+  }
+
+  // Update local array
+  const index = supplies.findIndex((s) => s.id === currentItem.id);
+  if (index !== -1) supplies[index] = data;
+  currentItem = data;
+
   closeEditOverlay();
   refreshMain();
 }
@@ -594,15 +680,22 @@ function closeDeleteOverlay() {
   document.getElementById("delete-overlay").classList.remove("active");
 }
 
-function confirmDelete() {
+async function confirmDelete() {
   if (!currentItem) return;
 
-  const index = supplies.indexOf(currentItem);
-  if (index !== -1) {
-    supplies.splice(index, 1);
+  const { error } = await supaClient
+    .from("supplies")
+    .delete()
+    .eq("id", currentItem.id);
+
+  if (error) {
+    console.error("Error deleting supply:", error);
+    return;
   }
 
-  saveSupplies();
+  const index = supplies.findIndex((s) => s.id === currentItem.id);
+  if (index !== -1) supplies.splice(index, 1);
+
   currentItem = null;
   closeDeleteOverlay();
   refreshMain();
@@ -647,20 +740,6 @@ const defaultWishlist = [
   },
 ];
 
-function loadWishlist() {
-  const stored = localStorage.getItem("wishlist");
-  if (stored) {
-    return JSON.parse(stored);
-  }
-  localStorage.setItem("wishlist", JSON.stringify(defaultWishlist));
-  return JSON.parse(JSON.stringify(defaultWishlist));
-}
-
-function saveWishlist() {
-  localStorage.setItem("wishlist", JSON.stringify(wishlist));
-}
-
-const wishlist = loadWishlist();
 let currentWishlistItem = null;
 const checkedItems = new Set();
 
@@ -770,7 +849,7 @@ function closeWishlistNewOverlay() {
   document.getElementById("wishlist-new-overlay").classList.remove("active");
 }
 
-function handleWishlistNewSubmit(e) {
+async function handleWishlistNewSubmit(e) {
   e.preventDefault();
 
   const name = document.getElementById("wishlist-new-name").value.trim();
@@ -778,17 +857,32 @@ function handleWishlistNewSubmit(e) {
 
   if (!name || !category) return;
 
-  wishlist.push({
+  const userId = await getUserId();
+  if (!userId) return;
+
+  const newItem = {
+    user_id: userId,
     name,
     category,
     quantity: document.getElementById("wishlist-new-quantity").value
       ? Number(document.getElementById("wishlist-new-quantity").value)
-      : "",
+      : null,
     brand: document.getElementById("wishlist-new-brand").value.trim() || "",
     store: document.getElementById("wishlist-new-store").value.trim() || "",
-  });
+  };
 
-  saveWishlist();
+  const { data, error } = await supaClient
+    .from("wishlist")
+    .insert(newItem)
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Error adding wishlist item:", error);
+    return;
+  }
+
+  wishlist.push(data);
   closeWishlistNewOverlay();
   checkedItems.clear();
   renderWishlist();
@@ -812,7 +906,7 @@ function closeWishlistEditOverlay() {
   document.getElementById("wishlist-edit-overlay").classList.remove("active");
 }
 
-function handleWishlistEditSubmit(e) {
+async function handleWishlistEditSubmit(e) {
   e.preventDefault();
   if (currentWishlistItem === null) return;
 
@@ -821,17 +915,31 @@ function handleWishlistEditSubmit(e) {
 
   if (!name || !category) return;
 
-  wishlist[currentWishlistItem] = {
+  const item = wishlist[currentWishlistItem];
+
+  const updates = {
     name,
     category,
     quantity: document.getElementById("wishlist-edit-quantity").value
       ? Number(document.getElementById("wishlist-edit-quantity").value)
-      : "",
+      : null,
     brand: document.getElementById("wishlist-edit-brand").value.trim() || "",
     store: document.getElementById("wishlist-edit-store").value.trim() || "",
   };
 
-  saveWishlist();
+  const { data, error } = await supaClient
+    .from("wishlist")
+    .update(updates)
+    .eq("id", item.id)
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Error updating wishlist item:", error);
+    return;
+  }
+
+  wishlist[currentWishlistItem] = data;
   closeWishlistEditOverlay();
   renderWishlist();
 }
@@ -848,11 +956,22 @@ function closeWishlistDeleteOverlay() {
   document.getElementById("wishlist-delete-overlay").classList.remove("active");
 }
 
-function confirmWishlistDelete() {
+async function confirmWishlistDelete() {
   if (currentWishlistItem === null) return;
 
+  const item = wishlist[currentWishlistItem];
+
+  const { error } = await supaClient
+    .from("wishlist")
+    .delete()
+    .eq("id", item.id);
+
+  if (error) {
+    console.error("Error deleting wishlist item:", error);
+    return;
+  }
+
   wishlist.splice(currentWishlistItem, 1);
-  saveWishlist();
   currentWishlistItem = null;
   closeWishlistDeleteOverlay();
   checkedItems.clear();
@@ -869,28 +988,60 @@ function closeMoveOverlay() {
   document.getElementById("move-overlay").classList.remove("active");
 }
 
-function confirmMoveToSupplies() {
+async function confirmMoveToSupplies() {
+  const userId = await getUserId();
+  if (!userId) return;
+
   // Get checked indices in descending order so splicing doesn't shift indices
   const indices = Array.from(checkedItems).sort((a, b) => b - a);
 
-  for (const i of indices) {
+  // Build supply items to insert
+  const newSupplies = indices.map((i) => {
     const item = wishlist[i];
-    // Convert wishlist item to supply item
-    supplies.push({
+    return {
+      user_id: userId,
       name: item.name,
       category: item.category,
-      quantity: item.quantity || "",
+      quantity: item.quantity || null,
       brand: item.brand || "",
       origin: item.store || "",
       dimensions: "",
       notes: "",
       tags: [],
-    });
+    };
+  });
+
+  // Insert new supplies
+  const { data: insertedSupplies, error: insertError } = await supaClient
+    .from("supplies")
+    .insert(newSupplies)
+    .select();
+
+  if (insertError) {
+    console.error("Error moving items to supplies:", insertError);
+    return;
+  }
+
+  // Delete wishlist items
+  const wishlistIds = indices.map((i) => wishlist[i].id);
+  const { error: deleteError } = await supaClient
+    .from("wishlist")
+    .delete()
+    .in("id", wishlistIds);
+
+  if (deleteError) {
+    console.error("Error removing moved wishlist items:", deleteError);
+    return;
+  }
+
+  // Update local arrays
+  if (insertedSupplies) {
+    supplies.push(...insertedSupplies);
+  }
+  for (const i of indices) {
     wishlist.splice(i, 1);
   }
 
-  saveSupplies();
-  saveWishlist();
   checkedItems.clear();
   closeMoveOverlay();
   renderWishlist();
@@ -898,22 +1049,9 @@ function confirmMoveToSupplies() {
 
 // ===== GALLERY LOGIC =====
 
-function loadGallery() {
-  const stored = localStorage.getItem("gallery");
-  if (stored) {
-    return JSON.parse(stored);
-  }
-  localStorage.setItem("gallery", JSON.stringify([]));
-  return [];
-}
-
-function saveGallery() {
-  localStorage.setItem("gallery", JSON.stringify(gallery));
-}
-
-const gallery = loadGallery();
 let currentGalleryItem = null;
 let pendingImageData = null;
+let pendingImageFile = null;
 
 function renderGallery() {
   const main = document.getElementById("gallery-main");
@@ -937,7 +1075,7 @@ function renderGallery() {
     const card = document.createElement("div");
     card.className = "gallery-card";
     card.innerHTML = `
-      <img class="gallery-card-img" src="${item.image}" alt="${item.title}">
+      <img class="gallery-card-img" src="${item.image_url}" alt="${item.title}">
       <h3 class="gallery-card-title">${item.title}</h3>
     `;
     card.addEventListener("click", () => openGalleryViewOverlay(i));
@@ -950,6 +1088,7 @@ function renderGallery() {
 // New image overlay
 function openGalleryNewOverlay() {
   pendingImageData = null;
+  pendingImageFile = null;
   document.getElementById("gallery-new-form")?.reset();
   document.getElementById("gallery-upload-area").style.display = "";
   document.getElementById("gallery-upload-preview").style.display = "none";
@@ -964,6 +1103,8 @@ function handleGalleryFileSelect(e) {
   const file = e.target.files[0];
   if (!file) return;
 
+  pendingImageFile = file;
+
   const reader = new FileReader();
   reader.onload = function (ev) {
     pendingImageData = ev.target.result;
@@ -976,24 +1117,59 @@ function handleGalleryFileSelect(e) {
 
 function removeGalleryPreview() {
   pendingImageData = null;
+  pendingImageFile = null;
   document.getElementById("gallery-new-file").value = "";
   document.getElementById("gallery-upload-area").style.display = "";
   document.getElementById("gallery-upload-preview").style.display = "none";
 }
 
-function handleGalleryNewSubmit(e) {
+async function handleGalleryNewSubmit(e) {
   e.preventDefault();
 
   const title = document.getElementById("gallery-new-title").value.trim();
-  if (!title || !pendingImageData) return;
+  if (!title || !pendingImageFile) return;
 
-  gallery.push({
-    title,
-    caption: document.getElementById("gallery-new-caption").value.trim() || "",
-    image: pendingImageData,
-  });
+  const userId = await getUserId();
+  if (!userId) return;
 
-  saveGallery();
+  // Upload image to Supabase Storage
+  const fileExt = pendingImageFile.name.split(".").pop();
+  const fileName = `${userId}/${Date.now()}.${fileExt}`;
+
+  const { error: uploadError } = await supaClient.storage
+    .from("gallery-images")
+    .upload(fileName, pendingImageFile);
+
+  if (uploadError) {
+    console.error("Error uploading image:", uploadError);
+    return;
+  }
+
+  // Get the public URL
+  const { data: urlData } = supaClient.storage
+    .from("gallery-images")
+    .getPublicUrl(fileName);
+
+  const imageUrl = urlData.publicUrl;
+
+  // Insert gallery record
+  const { data, error } = await supaClient
+    .from("gallery")
+    .insert({
+      user_id: userId,
+      title,
+      caption: document.getElementById("gallery-new-caption").value.trim() || "",
+      image_url: imageUrl,
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Error saving gallery item:", error);
+    return;
+  }
+
+  gallery.push(data);
   closeGalleryNewOverlay();
   renderGallery();
 }
@@ -1003,7 +1179,7 @@ function openGalleryViewOverlay(index) {
   currentGalleryItem = index;
   const item = gallery[index];
 
-  document.getElementById("gallery-view-img").src = item.image;
+  document.getElementById("gallery-view-img").src = item.image_url;
   document.getElementById("gallery-view-img").alt = item.title;
   document.getElementById("gallery-view-title").textContent = item.title;
   document.getElementById("gallery-view-caption").textContent = item.caption || "";
@@ -1029,17 +1205,33 @@ function closeGalleryEditOverlay() {
   document.getElementById("gallery-edit-overlay").classList.remove("active");
 }
 
-function handleGalleryEditSubmit(e) {
+async function handleGalleryEditSubmit(e) {
   e.preventDefault();
   if (currentGalleryItem === null) return;
 
   const title = document.getElementById("gallery-edit-title").value.trim();
   if (!title) return;
 
-  gallery[currentGalleryItem].title = title;
-  gallery[currentGalleryItem].caption = document.getElementById("gallery-edit-caption").value.trim() || "";
+  const item = gallery[currentGalleryItem];
 
-  saveGallery();
+  const updates = {
+    title,
+    caption: document.getElementById("gallery-edit-caption").value.trim() || "",
+  };
+
+  const { data, error } = await supaClient
+    .from("gallery")
+    .update(updates)
+    .eq("id", item.id)
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Error updating gallery item:", error);
+    return;
+  }
+
+  gallery[currentGalleryItem] = data;
   closeGalleryEditOverlay();
   renderGallery();
 }
@@ -1057,18 +1249,43 @@ function closeGalleryDeleteOverlay() {
   document.getElementById("gallery-delete-overlay").classList.remove("active");
 }
 
-function confirmGalleryDelete() {
+async function confirmGalleryDelete() {
   if (currentGalleryItem === null) return;
 
+  const item = gallery[currentGalleryItem];
+
+  // Delete from Supabase Storage
+  const storagePath = item.image_url.split("gallery-images/")[1];
+  if (storagePath) {
+    await supaClient.storage.from("gallery-images").remove([storagePath]);
+  }
+
+  // Delete from database
+  const { error } = await supaClient
+    .from("gallery")
+    .delete()
+    .eq("id", item.id);
+
+  if (error) {
+    console.error("Error deleting gallery item:", error);
+    return;
+  }
+
   gallery.splice(currentGalleryItem, 1);
-  saveGallery();
   currentGalleryItem = null;
   closeGalleryDeleteOverlay();
   renderGallery();
 }
 
-// Init
-document.addEventListener("DOMContentLoaded", () => {
+// ===== INIT =====
+document.addEventListener("DOMContentLoaded", async () => {
+  // Load data from Supabase for protected pages
+  if (protectedPages.includes(currentPage)) {
+    supplies = await loadSupplies();
+    wishlist = await loadWishlist();
+    gallery = await loadGallery();
+  }
+
   renderSupplies();
   renderWishlist();
   renderGallery();
@@ -1375,33 +1592,48 @@ document.addEventListener("DOMContentLoaded", () => {
   // ===== AUTH EVENT LISTENERS =====
 
   // Sign out
-  document.getElementById("sign-out-btn")?.addEventListener("click", (e) => {
+  document.getElementById("sign-out-btn")?.addEventListener("click", async (e) => {
     e.preventDefault();
-    localStorage.removeItem("loggedIn");
+    await supaClient.auth.signOut();
     window.location.href = "index.html";
   });
 
   // Login form
-  document.getElementById("login-form")?.addEventListener("submit", (e) => {
+  document.getElementById("login-form")?.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const username = document.getElementById("login-username").value.trim();
+    const email = document.getElementById("login-email").value.trim();
     const password = document.getElementById("login-password").value;
 
-    if (!username || !password) return;
+    if (!email || !password) return;
 
-    // Placeholder — Supabase will replace this
-    localStorage.setItem("loggedIn", "true");
+    // Clear previous errors
+    const existingError = document.querySelector(".auth-error");
+    if (existingError) existingError.remove();
+
+    const { error } = await supaClient.auth.signInWithPassword({ email, password });
+
+    if (error) {
+      const errorEl = document.createElement("p");
+      errorEl.className = "auth-error";
+      errorEl.textContent = error.message;
+      document.getElementById("login-form").insertBefore(
+        errorEl,
+        document.getElementById("login-form").querySelector(".btn-auth")
+      );
+      return;
+    }
+
     window.location.href = "supplies.html";
   });
 
   // Signup form
-  document.getElementById("signup-form")?.addEventListener("submit", (e) => {
+  document.getElementById("signup-form")?.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const username = document.getElementById("signup-username").value.trim();
+    const email = document.getElementById("signup-email").value.trim();
     const password = document.getElementById("signup-password").value;
     const confirm = document.getElementById("signup-confirm").value;
 
-    if (!username || !password || !confirm) return;
+    if (!email || !password || !confirm) return;
 
     // Check passwords match
     const existingError = document.querySelector(".auth-error");
@@ -1418,8 +1650,19 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // Placeholder — Supabase will replace this
-    localStorage.setItem("loggedIn", "true");
+    const { error } = await supaClient.auth.signUp({ email, password });
+
+    if (error) {
+      const errorEl = document.createElement("p");
+      errorEl.className = "auth-error";
+      errorEl.textContent = error.message;
+      document.getElementById("signup-form").insertBefore(
+        errorEl,
+        document.getElementById("signup-form").querySelector(".btn-auth")
+      );
+      return;
+    }
+
     window.location.href = "supplies.html";
   });
 });
