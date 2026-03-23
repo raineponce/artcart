@@ -887,10 +887,182 @@ function confirmMoveToSupplies() {
   renderWishlist();
 }
 
+// ===== GALLERY LOGIC =====
+
+function loadGallery() {
+  const stored = localStorage.getItem("gallery");
+  if (stored) {
+    return JSON.parse(stored);
+  }
+  localStorage.setItem("gallery", JSON.stringify([]));
+  return [];
+}
+
+function saveGallery() {
+  localStorage.setItem("gallery", JSON.stringify(gallery));
+}
+
+const gallery = loadGallery();
+let currentGalleryItem = null;
+let pendingImageData = null;
+
+function renderGallery() {
+  const main = document.getElementById("gallery-main");
+  if (!main) return;
+
+  main.innerHTML = "";
+
+  if (gallery.length === 0) {
+    const empty = document.createElement("p");
+    empty.className = "gallery-empty";
+    empty.textContent = 'Your gallery is empty. Click "new" to add images!';
+    main.appendChild(empty);
+    return;
+  }
+
+  const grid = document.createElement("div");
+  grid.className = "gallery-grid";
+
+  for (let i = 0; i < gallery.length; i++) {
+    const item = gallery[i];
+    const card = document.createElement("div");
+    card.className = "gallery-card";
+    card.innerHTML = `
+      <img class="gallery-card-img" src="${item.image}" alt="${item.title}">
+      <h3 class="gallery-card-title">${item.title}</h3>
+    `;
+    card.addEventListener("click", () => openGalleryViewOverlay(i));
+    grid.appendChild(card);
+  }
+
+  main.appendChild(grid);
+}
+
+// New image overlay
+function openGalleryNewOverlay() {
+  pendingImageData = null;
+  document.getElementById("gallery-new-form")?.reset();
+  document.getElementById("gallery-upload-area").style.display = "";
+  document.getElementById("gallery-upload-preview").style.display = "none";
+  document.getElementById("gallery-new-overlay").classList.add("active");
+}
+
+function closeGalleryNewOverlay() {
+  document.getElementById("gallery-new-overlay").classList.remove("active");
+}
+
+function handleGalleryFileSelect(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function (ev) {
+    pendingImageData = ev.target.result;
+    document.getElementById("gallery-preview-img").src = pendingImageData;
+    document.getElementById("gallery-upload-area").style.display = "none";
+    document.getElementById("gallery-upload-preview").style.display = "";
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeGalleryPreview() {
+  pendingImageData = null;
+  document.getElementById("gallery-new-file").value = "";
+  document.getElementById("gallery-upload-area").style.display = "";
+  document.getElementById("gallery-upload-preview").style.display = "none";
+}
+
+function handleGalleryNewSubmit(e) {
+  e.preventDefault();
+
+  const title = document.getElementById("gallery-new-title").value.trim();
+  if (!title || !pendingImageData) return;
+
+  gallery.push({
+    title,
+    caption: document.getElementById("gallery-new-caption").value.trim() || "",
+    image: pendingImageData,
+  });
+
+  saveGallery();
+  closeGalleryNewOverlay();
+  renderGallery();
+}
+
+// View image overlay
+function openGalleryViewOverlay(index) {
+  currentGalleryItem = index;
+  const item = gallery[index];
+
+  document.getElementById("gallery-view-img").src = item.image;
+  document.getElementById("gallery-view-img").alt = item.title;
+  document.getElementById("gallery-view-title").textContent = item.title;
+  document.getElementById("gallery-view-caption").textContent = item.caption || "";
+  document.getElementById("gallery-view-overlay").classList.add("active");
+}
+
+function closeGalleryViewOverlay() {
+  document.getElementById("gallery-view-overlay").classList.remove("active");
+}
+
+// Edit image overlay
+function openGalleryEditOverlay() {
+  if (currentGalleryItem === null) return;
+  closeGalleryViewOverlay();
+
+  const item = gallery[currentGalleryItem];
+  document.getElementById("gallery-edit-title").value = item.title;
+  document.getElementById("gallery-edit-caption").value = item.caption || "";
+  document.getElementById("gallery-edit-overlay").classList.add("active");
+}
+
+function closeGalleryEditOverlay() {
+  document.getElementById("gallery-edit-overlay").classList.remove("active");
+}
+
+function handleGalleryEditSubmit(e) {
+  e.preventDefault();
+  if (currentGalleryItem === null) return;
+
+  const title = document.getElementById("gallery-edit-title").value.trim();
+  if (!title) return;
+
+  gallery[currentGalleryItem].title = title;
+  gallery[currentGalleryItem].caption = document.getElementById("gallery-edit-caption").value.trim() || "";
+
+  saveGallery();
+  closeGalleryEditOverlay();
+  renderGallery();
+}
+
+// Delete image
+function openGalleryDeleteOverlay() {
+  if (currentGalleryItem === null) return;
+  closeGalleryViewOverlay();
+
+  document.getElementById("gallery-delete-item-name").textContent = gallery[currentGalleryItem].title;
+  document.getElementById("gallery-delete-overlay").classList.add("active");
+}
+
+function closeGalleryDeleteOverlay() {
+  document.getElementById("gallery-delete-overlay").classList.remove("active");
+}
+
+function confirmGalleryDelete() {
+  if (currentGalleryItem === null) return;
+
+  gallery.splice(currentGalleryItem, 1);
+  saveGallery();
+  currentGalleryItem = null;
+  closeGalleryDeleteOverlay();
+  renderGallery();
+}
+
 // Init
 document.addEventListener("DOMContentLoaded", () => {
   renderSupplies();
   renderWishlist();
+  renderGallery();
 
   // Hamburger menu toggle
   const hamburger = document.getElementById("hamburger");
@@ -1103,4 +1275,91 @@ document.addEventListener("DOMContentLoaded", () => {
   document
     .getElementById("move-confirm-btn")
     ?.addEventListener("click", confirmMoveToSupplies);
+
+  // ===== GALLERY EVENT LISTENERS =====
+
+  // New image
+  document
+    .getElementById("gallery-new-btn")
+    ?.addEventListener("click", openGalleryNewOverlay);
+
+  document
+    .getElementById("gallery-new-overlay-close")
+    ?.addEventListener("click", closeGalleryNewOverlay);
+
+  document.getElementById("gallery-new-overlay")?.addEventListener("click", (e) => {
+    if (e.target.id === "gallery-new-overlay") closeGalleryNewOverlay();
+  });
+
+  document
+    .getElementById("gallery-new-cancel-btn")
+    ?.addEventListener("click", closeGalleryNewOverlay);
+
+  document
+    .getElementById("gallery-new-form")
+    ?.addEventListener("submit", handleGalleryNewSubmit);
+
+  // File upload
+  document.getElementById("gallery-upload-area")?.addEventListener("click", () => {
+    document.getElementById("gallery-new-file")?.click();
+  });
+
+  document
+    .getElementById("gallery-new-file")
+    ?.addEventListener("change", handleGalleryFileSelect);
+
+  document
+    .getElementById("gallery-remove-img")
+    ?.addEventListener("click", removeGalleryPreview);
+
+  // View image
+  document
+    .getElementById("gallery-view-overlay-close")
+    ?.addEventListener("click", closeGalleryViewOverlay);
+
+  document.getElementById("gallery-view-overlay")?.addEventListener("click", (e) => {
+    if (e.target.id === "gallery-view-overlay") closeGalleryViewOverlay();
+  });
+
+  // Edit image
+  document
+    .getElementById("gallery-edit-btn")
+    ?.addEventListener("click", openGalleryEditOverlay);
+
+  document
+    .getElementById("gallery-edit-overlay-close")
+    ?.addEventListener("click", closeGalleryEditOverlay);
+
+  document.getElementById("gallery-edit-overlay")?.addEventListener("click", (e) => {
+    if (e.target.id === "gallery-edit-overlay") closeGalleryEditOverlay();
+  });
+
+  document
+    .getElementById("gallery-edit-cancel-btn")
+    ?.addEventListener("click", closeGalleryEditOverlay);
+
+  document
+    .getElementById("gallery-edit-form")
+    ?.addEventListener("submit", handleGalleryEditSubmit);
+
+  // Delete image
+  document
+    .getElementById("gallery-delete-btn")
+    ?.addEventListener("click", openGalleryDeleteOverlay);
+
+  document
+    .getElementById("gallery-delete-overlay-close")
+    ?.addEventListener("click", closeGalleryDeleteOverlay);
+
+  document.getElementById("gallery-delete-overlay")?.addEventListener("click", (e) => {
+    if (e.target.id === "gallery-delete-overlay") closeGalleryDeleteOverlay();
+  });
+
+  document
+    .getElementById("gallery-delete-cancel-btn")
+    ?.addEventListener("click", closeGalleryDeleteOverlay);
+
+  document
+    .getElementById("gallery-delete-confirm-btn")
+    ?.addEventListener("click", confirmGalleryDelete);
 });

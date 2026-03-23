@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ArtCart - My Gallery</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Young+Serif&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+  </head>
+  <body>
+
+    <!-- NAV - Off-white section -->
+    <nav class="nav-top">
+      <a href="index.html" class="nav-logo">
+        <span class="material-symbols-rounded">palette</span>
+        ArtCart
+      </a>
+      <button class="hamburger" id="hamburger" aria-label="Toggle navigation">
+        <span class="material-symbols-rounded">menu</span>
+      </button>
+      <div class="nav-links" id="nav-links">
+        <a href="supplies.html">supplies</a>
+        <a href="wishlist.html">wishlist</a>
+        <a href="gallery.html" class="active">gallery</a>
+        <div class="user-menu">
+          <button class="nav-icon-link" id="user-menu-btn" aria-label="User menu">
+            <span class="material-symbols-rounded">account_circle</span>
+          </button>
+          <div class="user-dropdown" id="user-dropdown">
+            <a href="#" class="user-dropdown-item">
+              <span class="material-symbols-rounded">face</span>
+              Change Avatar
+            </a>
+            <a href="#" class="user-dropdown-item">
+              <span class="material-symbols-rounded">logout</span>
+              Sign Out
+            </a>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- NAV - Dark-brown section -->
+    <div class="nav-sub">
+      <h1 class="page-title">my gallery</h1>
+      <div class="nav-sub-buttons">
+        <button class="btn-sub" id="gallery-new-btn">
+          <span>new</span>
+          <span class="material-symbols-rounded">add</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <main class="gallery-main" id="gallery-main">
+      <!-- Polaroid cards rendered by JS -->
+    </main>
+
+    <!-- NEW IMAGE OVERLAY -->
+    <div class="overlay" id="gallery-new-overlay">
+      <div class="overlay-content new-overlay-content">
+        <button class="overlay-close" id="gallery-new-overlay-close">
+          <span class="material-symbols-rounded">close</span>
+        </button>
+        <h2 class="overlay-title">new image</h2>
+        <form class="new-form" id="gallery-new-form">
+          <div class="form-group">
+            <label for="gallery-new-title">Title <span class="required">*</span></label>
+            <input type="text" id="gallery-new-title" name="title" required placeholder="e.g. Sunset Painting">
+          </div>
+          <div class="form-group">
+            <label for="gallery-new-caption">Caption</label>
+            <textarea id="gallery-new-caption" name="caption" rows="3" placeholder="Describe your artwork..."></textarea>
+          </div>
+          <div class="form-group">
+            <label>Image <span class="required">*</span></label>
+            <div class="gallery-upload-area" id="gallery-upload-area">
+              <span class="material-symbols-rounded">cloud_upload</span>
+              <p>Click to upload an image</p>
+              <p class="upload-hint">JPG, PNG, GIF, WEBP</p>
+            </div>
+            <input type="file" id="gallery-new-file" accept="image/*" hidden>
+            <div class="gallery-upload-preview" id="gallery-upload-preview" style="display:none;">
+              <img id="gallery-preview-img" alt="Preview">
+              <button type="button" class="gallery-remove-img" id="gallery-remove-img">
+                <span class="material-symbols-rounded">close</span>
+              </button>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="button" class="btn-overlay btn-overlay-clear" id="gallery-new-cancel-btn">Cancel</button>
+            <button type="submit" class="btn-overlay">
+              <span class="material-symbols-rounded">save</span>
+              Save
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- VIEW IMAGE OVERLAY -->
+    <div class="overlay" id="gallery-view-overlay">
+      <div class="overlay-content gallery-view-content">
+        <button class="overlay-close" id="gallery-view-overlay-close">
+          <span class="material-symbols-rounded">close</span>
+        </button>
+        <img class="gallery-view-img" id="gallery-view-img" alt="">
+        <h2 class="overlay-title" id="gallery-view-title"></h2>
+        <p class="gallery-view-caption" id="gallery-view-caption"></p>
+        <div class="overlay-actions">
+          <button class="btn-overlay" id="gallery-edit-btn">
+            <span class="material-symbols-rounded">edit</span>
+            Edit
+          </button>
+          <button class="btn-overlay btn-overlay-delete" id="gallery-delete-btn">
+            <span class="material-symbols-rounded">delete</span>
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- EDIT IMAGE OVERLAY -->
+    <div class="overlay" id="gallery-edit-overlay">
+      <div class="overlay-content new-overlay-content">
+        <button class="overlay-close" id="gallery-edit-overlay-close">
+          <span class="material-symbols-rounded">close</span>
+        </button>
+        <h2 class="overlay-title">edit image</h2>
+        <form class="new-form" id="gallery-edit-form">
+          <div class="form-group">
+            <label for="gallery-edit-title">Title <span class="required">*</span></label>
+            <input type="text" id="gallery-edit-title" name="title" required placeholder="e.g. Sunset Painting">
+          </div>
+          <div class="form-group">
+            <label for="gallery-edit-caption">Caption</label>
+            <textarea id="gallery-edit-caption" name="caption" rows="3" placeholder="Describe your artwork..."></textarea>
+          </div>
+          <div class="form-actions">
+            <button type="button" class="btn-overlay btn-overlay-clear" id="gallery-edit-cancel-btn">Cancel</button>
+            <button type="submit" class="btn-overlay">
+              <span class="material-symbols-rounded">save</span>
+              Save Changes
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- DELETE CONFIRMATION OVERLAY -->
+    <div class="overlay" id="gallery-delete-overlay">
+      <div class="overlay-content delete-overlay-content">
+        <button class="overlay-close" id="gallery-delete-overlay-close">
+          <span class="material-symbols-rounded">close</span>
+        </button>
+        <span class="material-symbols-rounded delete-icon">warning</span>
+        <h2 class="overlay-title">delete image?</h2>
+        <p class="delete-message">Are you sure you want to delete <strong id="gallery-delete-item-name"></strong>? This action cannot be undone.</p>
+        <div class="form-actions">
+          <button class="btn-overlay btn-overlay-clear" id="gallery-delete-cancel-btn">Cancel</button>
+          <button class="btn-overlay btn-overlay-delete" id="gallery-delete-confirm-btn">
+            <span class="material-symbols-rounded">delete</span>
+            Yes, Delete
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <div class="footer-brand">
+          <span class="material-symbols-rounded">palette</span>
+          <span>ArtCart</span>
+        </div>
+        <p class="footer-tagline">Track your art supplies, fuel your creativity.</p>
+        <div class="footer-links">
+          <a href="supplies.html">Supplies</a>
+          <a href="wishlist.html">Wishlist</a>
+          <a href="gallery.html">Gallery</a>
+        </div>
+        <p class="footer-copy">&copy; 2026 ArtCart. All rights reserved.</p>
+      </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+  </body>
+</html>
