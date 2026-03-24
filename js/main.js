@@ -2,8 +2,8 @@
 
 // ===== AUTH GUARD =====
 // Pages that require login
-const protectedPages = ["supplies.html", "wishlist.html", "gallery.html"];
-const currentPage = window.location.pathname.split("/").pop() || "index.html";
+const protectedPages = ["supplies", "wishlist", "gallery"];
+const currentPage = window.location.pathname.split("/").pop().replace(".html", "") || "index";
 
 (async () => {
   if (protectedPages.includes(currentPage)) {
