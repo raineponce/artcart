@@ -252,6 +252,15 @@ function groupByCategory(items) {
 function renderSupplies() {
   const main = document.getElementById("supplies-main");
   if (!main) return;
+  main.innerHTML = "";
+
+  if (supplies.length === 0) {
+    const empty = document.createElement("p");
+    empty.className = "supplies-empty";
+    empty.textContent = 'No supplies yet. Click "new" to add your first supply!';
+    main.appendChild(empty);
+    return;
+  }
 
   const grouped = groupByCategory(supplies);
 

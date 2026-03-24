@@ -574,6 +574,14 @@ h3 {
   border: 1.5px solid var(--dark-brown);
 }
 
+.supplies-empty {
+  text-align: center;
+  color: var(--off-white);
+  font-size: 0.9rem;
+  opacity: 0.8;
+  padding: 48px 0;
+}
+
 .filter-empty {
   text-align: center;
   color: var(--off-white);
