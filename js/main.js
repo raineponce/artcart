@@ -997,6 +997,54 @@ function closeMoveOverlay() {
   document.getElementById("move-overlay").classList.remove("active");
 }
 
+function openDuplicateOverlay() {
+  document.getElementById("duplicate-overlay").classList.add("active");
+}
+
+function closeDuplicateOverlay() {
+  document.getElementById("duplicate-overlay").classList.remove("active");
+}
+
+async function checkForDuplicatesAndMove() {
+  const indices = [...checkedItems].sort((a, b) => b - a);
+  const selectedNames = indices.map((i) => wishlist[i].name.toLowerCase());
+  const supplyNames = new Set(supplies.map((s) => s.name.toLowerCase()));
+  const hasDuplicate = selectedNames.some((name) => supplyNames.has(name));
+
+  if (hasDuplicate) {
+    closeMoveOverlay();
+    openDuplicateOverlay();
+  } else {
+    await confirmMoveToSupplies();
+  }
+}
+
+async function deleteCheckedFromWishlist() {
+  const userId = await getUserId();
+  if (!userId) return;
+
+  const indices = [...checkedItems].sort((a, b) => b - a);
+  const wishlistIds = indices.map((i) => wishlist[i].id);
+
+  const { error } = await supaClient
+    .from("wishlist")
+    .delete()
+    .in("id", wishlistIds);
+
+  if (error) {
+    console.error("Error deleting wishlist items:", error);
+    return;
+  }
+
+  for (const i of indices) {
+    wishlist.splice(i, 1);
+  }
+
+  checkedItems.clear();
+  closeDuplicateOverlay();
+  renderWishlist();
+}
+
 async function confirmMoveToSupplies() {
   const userId = await getUserId();
   if (!userId) return;
@@ -1509,7 +1557,37 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   document
     .getElementById("move-confirm-btn")
-    ?.addEventListener("click", confirmMoveToSupplies);
+    ?.addEventListener("click", checkForDuplicatesAndMove);
+
+  // Duplicate item warning overlay
+  document
+    .getElementById("duplicate-overlay-close")
+    ?.addEventListener("click", closeDuplicateOverlay);
+
+  document.getElementById("duplicate-overlay")?.addEventListener("click", (e) => {
+    if (e.target.id === "duplicate-overlay") closeDuplicateOverlay();
+  });
+
+  document
+    .getElementById("duplicate-cancel-btn")
+    ?.addEventListener("click", closeDuplicateOverlay);
+
+  document
+    .getElementById("duplicate-view-supplies-btn")
+    ?.addEventListener("click", () => {
+      window.open("supplies.html", "_blank");
+    });
+
+  document
+    .getElementById("duplicate-add-anyways-btn")
+    ?.addEventListener("click", async () => {
+      closeDuplicateOverlay();
+      await confirmMoveToSupplies();
+    });
+
+  document
+    .getElementById("duplicate-delete-btn")
+    ?.addEventListener("click", deleteCheckedFromWishlist);
 
   // ===== GALLERY EVENT LISTENERS =====
 

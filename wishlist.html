@@ -199,6 +199,37 @@
       </div>
     </div>
 
+    <!-- DUPLICATE ITEM WARNING OVERLAY -->
+    <div class="overlay" id="duplicate-overlay">
+      <div class="overlay-content delete-overlay-content">
+        <button class="overlay-close" id="duplicate-overlay-close">
+          <span class="material-symbols-rounded">close</span>
+        </button>
+        <span class="material-symbols-rounded move-icon">warning</span>
+        <h2 class="overlay-title">already in supplies</h2>
+        <p class="delete-message">One or more items you're adding already exist in your supplies. What would you like to do?</p>
+        <div class="form-actions" style="flex-direction: column; align-items: center;">
+          <div class="form-actions" style="margin-top: 0;">
+            <button class="btn-overlay" id="duplicate-add-anyways-btn">
+              <span class="material-symbols-rounded">check</span>
+              Add Anyways
+            </button>
+            <button class="btn-overlay" id="duplicate-delete-btn" style="background-color: #8B2500;">
+              <span class="material-symbols-rounded">delete</span>
+              Delete Item
+            </button>
+          </div>
+          <div class="form-actions" style="margin-top: 0;">
+            <button class="btn-overlay btn-overlay-clear" id="duplicate-cancel-btn">Cancel</button>
+            <button class="btn-overlay btn-overlay-clear" id="duplicate-view-supplies-btn">
+              <span class="material-symbols-rounded">open_in_new</span>
+              View Supplies
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- FOOTER -->
     <footer class="site-footer">
       <div class="footer-inner">
